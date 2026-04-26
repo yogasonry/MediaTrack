@@ -116,7 +116,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:10
   overflow:hidden;position:relative;z-index:30;
 }
 
-.sb-top{padding:14px 12px 6px;flex-shrink:0}
+.sb-top{padding:14px 8px 6px 10px;flex-shrink:0;display:flex;flex-direction:column;align-items:flex-start}
 .sb-brand{display:flex;align-items:center;gap:10px;padding:8px 4px;margin-bottom:8px;overflow:hidden;white-space:nowrap}
 .sb-brand-icon{width:40px;height:40px;border-radius:10px;background:var(--grad);display:grid;place-items:center;flex-shrink:0;box-shadow:0 2px 10px var(--grad-shadow)}
 .sb-brand-text{overflow:hidden;display:flex;flex-direction:row;align-items:center;gap:8px}
@@ -874,7 +874,7 @@ tbody tr:hover .row-actions{opacity:1}
 <!-- LOGIN -->
 <div id="login-screen">
   <div class="login-wrap">
-    <div style="width:260px;height:92px;margin:0 auto 28px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 300" style="width:100%;height:100%;display:block"><defs><linearGradient id="mt-grad-1" x1="-1389.52" y1="59.6" x2="-1388.52" y2="58.6" gradientTransform="translate(266827 -11200) scale(192)" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#1a3aaa"/><stop offset=".55" stop-color="#00bcd4"/><stop offset="1" stop-color="#7eefc0"/></linearGradient></defs><rect class="mt-logo-bg" fill="url(#mt-grad-1)" x="39.76" y="51.37" width="192" height="192" rx="40" ry="40"/><path class="mt-logo-white" d="M105.76,96.87h42c6.63,0,12,5.37,12,12v6h12v-6c0-13.25-10.75-24-24-24h-42c-6.63,0-12,5.37-12,12v96c0,6.63,5.37,12,12,12h60c6.63,0,12-5.37,12-12h0v-19.02l-12,7.02v12h-60v-96Z"/><polyline class="mt-logo-stroke-r" points="147.76 96.87 147.76 120.87 171.76 120.87"/><line class="mt-logo-stroke" x1="165.76" y1="150.87" x2="117.76" y2="150.87"/><line class="mt-logo-stroke" x1="171.76" y1="174.87" x2="117.76" y2="174.87"/><text class="mt-logo-name" transform="translate(267.79 156.69)"><tspan x="0" y="0">MediaTrack</tspan></text><text class="mt-logo-sub" transform="translate(271.92 216.76)"><tspan x="0" y="0">Media Transfer Tracking</tspan></text></svg></div>
+    <div style="width:260px;height:72px;margin:0 auto 28px;overflow:visible"><svg xmlns="http://www.w3.org/2000/svg" viewBox="30 45 820 215" style="width:100%;height:100%;display:block;overflow:visible"><defs><linearGradient id="mt-grad-1" x1="-1389.52" y1="59.6" x2="-1388.52" y2="58.6" gradientTransform="translate(266827 -11200) scale(192)" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#1a3aaa"/><stop offset=".55" stop-color="#00bcd4"/><stop offset="1" stop-color="#7eefc0"/></linearGradient></defs><rect class="mt-logo-bg" fill="url(#mt-grad-1)" x="39.76" y="51.37" width="192" height="192" rx="40" ry="40"/><path class="mt-logo-white" d="M105.76,96.87h42c6.63,0,12,5.37,12,12v6h12v-6c0-13.25-10.75-24-24-24h-42c-6.63,0-12,5.37-12,12v96c0,6.63,5.37,12,12,12h60c6.63,0,12-5.37,12-12h0v-19.02l-12,7.02v12h-60v-96Z"/><polyline class="mt-logo-stroke-r" points="147.76 96.87 147.76 120.87 171.76 120.87"/><line class="mt-logo-stroke" x1="165.76" y1="150.87" x2="117.76" y2="150.87"/><line class="mt-logo-stroke" x1="171.76" y1="174.87" x2="117.76" y2="174.87"/><text class="mt-logo-name" transform="translate(267.79 156.69)"><tspan x="0" y="0">MediaTrack</tspan></text><text class="mt-logo-sub" transform="translate(271.92 216.76)"><tspan x="0" y="0">Media Transfer Tracking</tspan></text></svg></div>
     <div class="login-card">
       <div class="login-title">Sign in to MediaTrack</div>
       <div class="login-sub">media production data management</div>
@@ -933,7 +933,7 @@ tbody tr:hover .row-actions{opacity:1}
 <!-- REGISTER SCREEN -->
 <div id="register-screen" style="display:none;position:fixed;inset:0;z-index:998;background:linear-gradient(135deg,#eef2ff 0%,#e8ecff 40%,#f4f6fa 100%);align-items:center;justify-content:center">
   <div class="login-wrap" style="max-width:480px">
-    <div style="width:260px;height:92px;margin:0 auto 28px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 300" style="width:100%;height:100%;display:block"><defs><linearGradient id="mt-grad-2" x1="-1389.52" y1="59.6" x2="-1388.52" y2="58.6" gradientTransform="translate(266827 -11200) scale(192)" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#1a3aaa"/><stop offset=".55" stop-color="#00bcd4"/><stop offset="1" stop-color="#7eefc0"/></linearGradient></defs><rect class="mt-logo-bg" fill="url(#mt-grad-2)" x="39.76" y="51.37" width="192" height="192" rx="40" ry="40"/><path class="mt-logo-white" d="M105.76,96.87h42c6.63,0,12,5.37,12,12v6h12v-6c0-13.25-10.75-24-24-24h-42c-6.63,0-12,5.37-12,12v96c0,6.63,5.37,12,12,12h60c6.63,0,12-5.37,12-12h0v-19.02l-12,7.02v12h-60v-96Z"/><polyline class="mt-logo-stroke-r" points="147.76 96.87 147.76 120.87 171.76 120.87"/><line class="mt-logo-stroke" x1="165.76" y1="150.87" x2="117.76" y2="150.87"/><line class="mt-logo-stroke" x1="171.76" y1="174.87" x2="117.76" y2="174.87"/><text class="mt-logo-name" transform="translate(267.79 156.69)"><tspan x="0" y="0">MediaTrack</tspan></text><text class="mt-logo-sub" transform="translate(271.92 216.76)"><tspan x="0" y="0">Media Transfer Tracking</tspan></text></svg></div>
+    <div style="width:260px;height:72px;margin:0 auto 28px;overflow:visible"><svg xmlns="http://www.w3.org/2000/svg" viewBox="30 45 820 215" style="width:100%;height:100%;display:block;overflow:visible"><defs><linearGradient id="mt-grad-2" x1="-1389.52" y1="59.6" x2="-1388.52" y2="58.6" gradientTransform="translate(266827 -11200) scale(192)" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#1a3aaa"/><stop offset=".55" stop-color="#00bcd4"/><stop offset="1" stop-color="#7eefc0"/></linearGradient></defs><rect class="mt-logo-bg" fill="url(#mt-grad-2)" x="39.76" y="51.37" width="192" height="192" rx="40" ry="40"/><path class="mt-logo-white" d="M105.76,96.87h42c6.63,0,12,5.37,12,12v6h12v-6c0-13.25-10.75-24-24-24h-42c-6.63,0-12,5.37-12,12v96c0,6.63,5.37,12,12,12h60c6.63,0,12-5.37,12-12h0v-19.02l-12,7.02v12h-60v-96Z"/><polyline class="mt-logo-stroke-r" points="147.76 96.87 147.76 120.87 171.76 120.87"/><line class="mt-logo-stroke" x1="165.76" y1="150.87" x2="117.76" y2="150.87"/><line class="mt-logo-stroke" x1="171.76" y1="174.87" x2="117.76" y2="174.87"/><text class="mt-logo-name" transform="translate(267.79 156.69)"><tspan x="0" y="0">MediaTrack</tspan></text><text class="mt-logo-sub" transform="translate(271.92 216.76)"><tspan x="0" y="0">Media Transfer Tracking</tspan></text></svg></div>
     <div class="login-card">
       <div class="login-title">Create Account</div>
       <div class="login-sub">sign up to start tracking media transfers</div>
@@ -968,7 +968,7 @@ tbody tr:hover .row-actions{opacity:1}
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
     <div class="sb-top">
-      <div style="width:180px;height:64px;margin:4px 0 8px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 300" style="width:100%;height:100%;display:block"><defs><linearGradient id="mt-grad-3" x1="-1389.52" y1="59.6" x2="-1388.52" y2="58.6" gradientTransform="translate(266827 -11200) scale(192)" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#1a3aaa"/><stop offset=".55" stop-color="#00bcd4"/><stop offset="1" stop-color="#7eefc0"/></linearGradient></defs><rect class="mt-logo-bg" fill="url(#mt-grad-3)" x="39.76" y="51.37" width="192" height="192" rx="40" ry="40"/><path class="mt-logo-white" d="M105.76,96.87h42c6.63,0,12,5.37,12,12v6h12v-6c0-13.25-10.75-24-24-24h-42c-6.63,0-12,5.37-12,12v96c0,6.63,5.37,12,12,12h60c6.63,0,12-5.37,12-12h0v-19.02l-12,7.02v12h-60v-96Z"/><polyline class="mt-logo-stroke-r" points="147.76 96.87 147.76 120.87 171.76 120.87"/><line class="mt-logo-stroke" x1="165.76" y1="150.87" x2="117.76" y2="150.87"/><line class="mt-logo-stroke" x1="171.76" y1="174.87" x2="117.76" y2="174.87"/><text class="mt-logo-name" transform="translate(267.79 156.69)"><tspan x="0" y="0">MediaTrack</tspan></text><text class="mt-logo-sub" transform="translate(271.92 216.76)"><tspan x="0" y="0">Media Transfer Tracking</tspan></text></svg></div>
+      <div style="width:200px;height:52px;margin:4px 0 8px 4px;overflow:visible"><svg xmlns="http://www.w3.org/2000/svg" viewBox="30 45 820 215" style="width:100%;height:100%;display:block;overflow:visible"><defs><linearGradient id="mt-grad-3" x1="-1389.52" y1="59.6" x2="-1388.52" y2="58.6" gradientTransform="translate(266827 -11200) scale(192)" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#1a3aaa"/><stop offset=".55" stop-color="#00bcd4"/><stop offset="1" stop-color="#7eefc0"/></linearGradient></defs><rect class="mt-logo-bg" fill="url(#mt-grad-3)" x="39.76" y="51.37" width="192" height="192" rx="40" ry="40"/><path class="mt-logo-white" d="M105.76,96.87h42c6.63,0,12,5.37,12,12v6h12v-6c0-13.25-10.75-24-24-24h-42c-6.63,0-12,5.37-12,12v96c0,6.63,5.37,12,12,12h60c6.63,0,12-5.37,12-12h0v-19.02l-12,7.02v12h-60v-96Z"/><polyline class="mt-logo-stroke-r" points="147.76 96.87 147.76 120.87 171.76 120.87"/><line class="mt-logo-stroke" x1="165.76" y1="150.87" x2="117.76" y2="150.87"/><line class="mt-logo-stroke" x1="171.76" y1="174.87" x2="117.76" y2="174.87"/><text class="mt-logo-name" transform="translate(267.79 156.69)"><tspan x="0" y="0">MediaTrack</tspan></text><text class="mt-logo-sub" transform="translate(271.92 216.76)"><tspan x="0" y="0">Media Transfer Tracking</tspan></text></svg></div>
     </div>
 
     <nav class="sb-nav">
@@ -2359,6 +2359,9 @@ const DEVICES_DEFAULT = DMT_CONFIG.defaultDevices || [];
 /* == STATE == */
 const SESSION_KEY='dmt_session', DEVICES_KEY='dmt_devices', SESSION_TTL=12*60*60*1000;
 
+// Per-user key prefix — all app data keyed by user ID
+function _uk(key){ return (_authUserId||'anon')+'_'+key; }
+
 /* ================================
    SUPABASE API LAYER
    Replaces all GAS fetch calls
@@ -2870,6 +2873,7 @@ async function doRegister(){
     if(userId) localStorage.setItem('mt_uid',userId);
     const name=displayName||email.split('@')[0];
     const sess={username:email,role:'data_manager',displayName:name,expires:Date.now()+SESSION_TTL,authToken:token,userId};
+    _clearAppDataIfUserChanged(userId);
     saveSession(sess);
     bootApp(sess);
   }catch(err){
@@ -2994,6 +2998,8 @@ async function doLogin(){
     const userMeta=d.user?.user_metadata||{};
     const displayName=userMeta.display_name||emailOrUser.split('@')[0];
     const sess={username:emailOrUser,role:'data_manager',displayName,expires:Date.now()+SESSION_TTL,authToken:_authToken,userId:_authUserId};
+    // Clear app data if switching to a different user
+    _clearAppDataIfUserChanged(_authUserId);
     saveSession(sess);
     bootApp(sess);
   }catch(err2){
@@ -3237,6 +3243,25 @@ function showLoginErr(msg){
 }
 function saveSession(s){localStorage.setItem(SESSION_KEY,JSON.stringify(s));}
 function loadSession(){try{const r=localStorage.getItem(SESSION_KEY);if(!r)return null;const s=JSON.parse(r);if(Date.now()>s.expires){localStorage.removeItem(SESSION_KEY);return null;}return s;}catch{return null;}}
+function _clearAppDataIfUserChanged(newUserId){
+  const prevUserId = localStorage.getItem('mt_last_uid');
+  if(prevUserId && prevUserId !== newUserId){
+    // Different user — wipe all app-level localStorage keys
+    const keysToRemove = [];
+    for(let i = 0; i < localStorage.length; i++){
+      const k = localStorage.key(i);
+      if(k && (
+        k.startsWith('dmt_') ||
+        k.startsWith('mt_ws') ||
+        k.startsWith('mt_pending')
+      )) keysToRemove.push(k);
+    }
+    keysToRemove.forEach(k => localStorage.removeItem(k));
+    console.log('[auth] user changed, cleared', keysToRemove.length, 'localStorage keys');
+  }
+  localStorage.setItem('mt_last_uid', newUserId);
+}
+
 function doLogout(){
   if(_tokenRefreshTimer) clearInterval(_tokenRefreshTimer);
   if(_autoRefreshTimer) clearInterval(_autoRefreshTimer);
@@ -3244,6 +3269,7 @@ function doLogout(){
   localStorage.removeItem('mt_token');
   localStorage.removeItem('mt_uid');
   localStorage.removeItem('mt_refresh_token');
+  localStorage.removeItem('mt_last_uid');
   _authToken=null; _authUserId=null;
   location.reload();
 }
@@ -3497,13 +3523,16 @@ function buildScheduleFull(){
 ======================================================= */
 const EVENTS_KEY='dmt_events';
 const ACTIVE_EVENT_KEY='dmt_active_event';
+function _eventsKey(){ return _uk(EVENTS_KEY); }
+function _activeEvKey(){ return _uk(ACTIVE_EVENT_KEY); }
+
 
 function slugify(str){
   return str.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').substring(0,40)||('event-'+Date.now());
 }
 function getEvents(){
   try{
-    const s=localStorage.getItem(EVENTS_KEY);
+    const s=localStorage.getItem(_eventsKey());
     if(s){const p=JSON.parse(s);if(Array.isArray(p)&&p.length)return p;}
   }catch{}
   return [];
@@ -3512,15 +3541,15 @@ function getOrInitEvents(){
   // No auto-create -- return empty and let UI show empty state
   return getEvents();
 }
-function saveEvents(evs){localStorage.setItem(EVENTS_KEY,JSON.stringify(evs));}
+function saveEvents(evs){localStorage.setItem(_eventsKey(),JSON.stringify(evs));}
 
 function getActiveEventId(){
   const evs=getEvents();
   if(!evs.length)return null;
-  const stored=localStorage.getItem(ACTIVE_EVENT_KEY);
+  const stored=localStorage.getItem(_activeEvKey());
   if(stored&&evs.find(e=>e.id===stored))return stored;
   const first=evs[0]?.id||'default';
-  localStorage.setItem(ACTIVE_EVENT_KEY,first);
+  localStorage.setItem(_activeEvKey(),first);
   return first;
 }
 function getActiveEvent(){
@@ -3536,7 +3565,7 @@ function setActiveEvent(id){
   const evs=getEvents();
   const ev=evs.find(e=>e.id===id);
   if(!ev)return;
-  localStorage.setItem(ACTIVE_EVENT_KEY,id);
+  localStorage.setItem(_activeEvKey(),id);
   applyEvent(ev);
   renderSidebarEvents();
   try{ initCrewFromStorage(id); }catch(e){ console.warn('initCrew err:',e); }
@@ -4081,7 +4110,7 @@ function wizNext(){
     _wizEventId=id;
     rows=[];
     updateStats();
-    localStorage.setItem(ACTIVE_EVENT_KEY,id);
+    localStorage.setItem(_activeEvKey(),id);
     applyEvent(newEv);
     renderSidebarEvents();
     // Event now exists — unlock nav immediately so user can navigate even while wizard is open
@@ -4586,7 +4615,7 @@ function saveEvent(){
     if(body)body.innerHTML=`<tr class="tbl-msg"><td colspan="10"><span class="spin"></span> Loading...</td></tr>`;
     updateStats();
     hideNoEventState();
-    localStorage.setItem(ACTIVE_EVENT_KEY,id);
+    localStorage.setItem(_activeEvKey(),id);
     applyEvent(newEv);
     buildDayDropdown();
     // -- Copy crew from selected source event --
@@ -4649,13 +4678,13 @@ async function deleteEvent(id){
   }
 
   // -- Clear localStorage for this event --
-  localStorage.removeItem(DEVICES_KEY+'_'+id);
-  localStorage.removeItem('dmt_sheet_url_'+id);
+  localStorage.removeItem(_uk(DEVICES_KEY)+'_'+id);
+  localStorage.removeItem(_uk('dmt_sheet_url_')+id);
   localStorage.removeItem('dmt_schedule_'+id);
-  localStorage.removeItem(SCHED_KEY); // clear legacy global key
+  localStorage.removeItem(_uk(SCHED_KEY)); // clear legacy global key
   if(deleteCrew){
     localStorage.removeItem('dmt_crew_'+id);
-    localStorage.removeItem(CREW_KEY); // clear legacy global key
+    localStorage.removeItem(_uk(CREW_KEY)); // clear legacy global key
   }
 
   // -- Clear in-memory state if this was active event --
@@ -4679,7 +4708,7 @@ async function deleteEvent(id){
   toast(`Event "${ev.name}" deleted`,'ok');
 
   if(!remaining.length){
-    localStorage.removeItem(ACTIVE_EVENT_KEY);
+    localStorage.removeItem(_activeEvKey());
     // Clear event chip
     const chip=document.getElementById('event-chip-text');
     if(chip)chip.textContent='No active event';
@@ -4694,7 +4723,7 @@ async function deleteEvent(id){
   // -- Switch to another event if deleted was active --
   if(!getActiveEventId()||getActiveEventId()===id){
     const next=remaining[0];
-    localStorage.setItem(ACTIVE_EVENT_KEY,next.id);
+    localStorage.setItem(_activeEvKey(),next.id);
     applyEvent(next);          // updates chip immediately
     initCrewFromStorage(next.id);
     initScheduleFromStorage(next.id);
@@ -4983,7 +5012,7 @@ function getDevices(){
     try{const s=JSON.parse(raw);if(Array.isArray(s))return s;}catch{}
   }
   // Fallback: shared legacy key (backward compat)
-  const legacyRaw=localStorage.getItem(DEVICES_KEY);
+  const legacyRaw=localStorage.getItem(_uk(DEVICES_KEY));
   if(legacyRaw!==null){
     try{const s=JSON.parse(legacyRaw);if(Array.isArray(s))return s;}catch{}
   }
@@ -4995,7 +5024,7 @@ async function syncDevicesFromGAS(){
   try{
     const devs=await sbGetDevices(getActiveEventId());
     if(Array.isArray(devs)&&devs.length){
-      localStorage.setItem(DEVICES_KEY+'_'+getActiveEventId(),JSON.stringify(devs));
+      localStorage.setItem(_uk(DEVICES_KEY)+'_'+getActiveEventId(),JSON.stringify(devs));
       buildDeviceDropdown();renderDeviceSettings();renderStorageStats();
     }
   }catch(e){/* fallback ke cache localStorage */}
@@ -5006,7 +5035,7 @@ function buildDeviceDropdown(){
   sel.innerHTML='<option value="">-- Select storage --</option>';
   devs.forEach(d=>{const o=document.createElement('option');o.value=d;o.textContent=d;sel.appendChild(o);});
   // Auto-select last used storage device
-  const last=localStorage.getItem('dmt_last_storage');
+  const last=localStorage.getItem(_uk('dmt_last_storage'));
   if(last){const opt=[...sel.options].find(o=>o.value===last);if(opt)sel.value=last;}
   const prev=document.getElementById('device-preview');
   prev.innerHTML=devs.length
@@ -5037,14 +5066,14 @@ function cancelEditDevices(){
   document.getElementById('device-locked-view').style.display='block';
   renderDeviceSettings();
 }
-function addDevice(){const devs=getDevices();devs.push('');localStorage.setItem(DEVICES_KEY+'_'+getActiveEventId(),JSON.stringify(devs));renderDeviceSettings();}
-function removeDevice(i){const devs=getDevices();devs.splice(i,1);localStorage.setItem(DEVICES_KEY+'_'+getActiveEventId(),JSON.stringify(devs));renderDeviceSettings();}
+function addDevice(){const devs=getDevices();devs.push('');localStorage.setItem(_uk(DEVICES_KEY)+'_'+getActiveEventId(),JSON.stringify(devs));renderDeviceSettings();}
+function removeDevice(i){const devs=getDevices();devs.splice(i,1);localStorage.setItem(_uk(DEVICES_KEY)+'_'+getActiveEventId(),JSON.stringify(devs));renderDeviceSettings();}
 
 async function saveDevices(){
   const inputs=document.querySelectorAll('[id^="dev-"]');
   const devs=[...inputs].map(inp=>inp.value.trim()).filter(Boolean);
   // 1. Save ke localStorage dulu (instant)
-  localStorage.setItem(DEVICES_KEY+'_'+getActiveEventId(),JSON.stringify(devs));
+  localStorage.setItem(_uk(DEVICES_KEY)+'_'+getActiveEventId(),JSON.stringify(devs));
   buildDeviceDropdown();
   document.getElementById('device-edit-view').style.display='none';
   document.getElementById('device-locked-view').style.display='block';
@@ -5089,10 +5118,11 @@ document.getElementById('mainForm').addEventListener('submit',async e=>{
     await sbSubmitTransfer(payload);
     // Save last-used storage for smart default
     const usedStorage=v('f-storage');
-    if(usedStorage)localStorage.setItem('dmt_last_storage',usedStorage);
+    if(usedStorage)localStorage.setItem(_uk('dmt_last_storage'),usedStorage);
     // Show confirmation card before reset
     _showSubmitConfirmation(payload);
     toast('(ok) Transfer recorded successfully!','ok');
+    if(typeof buildScheduleStrip==='function') buildScheduleStrip();
     e.target.reset();
     document.getElementById('crew-info-card')?.classList.add('hidden');
     document.getElementById('manual-crew-wrap').style.display='none';
@@ -5100,7 +5130,7 @@ document.getElementById('mainForm').addEventListener('submit',async e=>{
     document.getElementById('f-slot').innerHTML='<option value="">-- Select stage first --</option>';
     // Re-apply last storage default after reset
     setTimeout(()=>{
-      const last=localStorage.getItem('dmt_last_storage');
+      const last=localStorage.getItem(_uk('dmt_last_storage'));
       const storSel=document.getElementById('f-storage');
       if(last&&storSel){
         const opt=[...storSel.options].find(o=>o.value===last);
@@ -5165,6 +5195,8 @@ async function loadData(silent=false){
     const prevCount=rows.length;
     rows=await sbLoadTransfers(_eid);
     renderTable();updateStats();renderCrewGrid('crew-grid',rows);renderStorageStats();
+    if(typeof buildScheduleStrip==='function') buildScheduleStrip();
+    if(typeof buildScheduleFull==='function') buildScheduleFull();
     _lastLoadTime=Date.now();
     _updateFreshnessLabel();
     if(rows.length>prevCount&&prevCount>0){
@@ -5974,7 +6006,7 @@ async function publicLoadData(){
     try{
       const devs=await sbGetDevices(getActiveEventId());
       if(Array.isArray(devs)&&devs.length)
-        localStorage.setItem(DEVICES_KEY+'_'+getActiveEventId(),JSON.stringify(devs));
+        localStorage.setItem(_uk(DEVICES_KEY)+'_'+getActiveEventId(),JSON.stringify(devs));
     }catch(e){/* fallback to localStorage cache */}
     pubRows=await sbLoadTransfers(getActiveEventId());
     pubRenderTable();
@@ -6233,12 +6265,12 @@ async function executeReset(){
       });
       // Global (non-event-scoped) keys
       localStorage.removeItem(DEVICES_KEY);
-      localStorage.removeItem(CREW_KEY);
-      localStorage.removeItem(SCHED_KEY);
+      localStorage.removeItem(_uk(CREW_KEY));
+      localStorage.removeItem(_uk(SCHED_KEY));
 
       // -- Wipe events list -> blank slate --
-      localStorage.removeItem(EVENTS_KEY);
-      localStorage.removeItem(ACTIVE_EVENT_KEY);
+      localStorage.removeItem(_eventsKey());
+      localStorage.removeItem(_activeEvKey());
 
       buildDeviceDropdown();
       renderDeviceSettings();
@@ -6378,7 +6410,7 @@ function switchSettingsTab(tab) {
 const CREW_KEY = 'dmt_crew';
 const CREW_ROLES = Object.keys(DMT_CONFIG.roleColors || {});
 
-function _crewKey(evId){ return 'dmt_crew_'+(evId||getActiveEventId()||'default'); }
+function _crewKey(evId){ return _uk('dmt_crew_')+(evId||getActiveEventId()||'default'); }
 
 function getCrewData(evId) {
   try {
@@ -6593,7 +6625,7 @@ async function saveCrew() {
 
 async function resetCrewToDefault() {
   if (!confirm('Reset crew list to defaults? Custom changes will be lost.')) return;
-  localStorage.removeItem(CREW_KEY);
+  localStorage.removeItem(_uk(CREW_KEY));
   // Restore from config default
   const defaultCrew = window._CREW_DEFAULT
     ? JSON.parse(JSON.stringify(window._CREW_DEFAULT))
@@ -6616,7 +6648,7 @@ const SCHED_KEY = 'dmt_schedule';
 const _SCHED_COLORS = ['var(--accent)', 'var(--blue)', 'var(--purple)', 'var(--orange)', 'var(--teal)', 'var(--green)'];
 let _activeSchedStage = null;
 
-function _schedKey(evId){ return 'dmt_schedule_'+(evId||getActiveEventId()||'default'); }
+function _schedKey(evId){ return _uk('dmt_schedule_')+(evId||getActiveEventId()||'default'); }
 
 function getScheduleData(evId) {
   try {
@@ -6929,7 +6961,7 @@ async function saveScheduleSettings() {
 
 async function resetScheduleToDefault() {
   if (!confirm('Reset schedule to defaults? Custom changes will be lost.')) return;
-  localStorage.removeItem(SCHED_KEY);
+  localStorage.removeItem(_uk(SCHED_KEY));
   _activeSchedStage = null;
   const defaultSched = window._SCHED_DEFAULT
     ? JSON.parse(JSON.stringify(window._SCHED_DEFAULT))
