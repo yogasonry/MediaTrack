@@ -936,7 +936,7 @@ tbody tr:hover .row-actions{opacity:1}
     <div style="width:260px;height:92px;margin:0 auto 28px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 300" style="width:100%;height:100%;display:block"><defs><linearGradient id="mt-grad-2" x1="-1389.52" y1="59.6" x2="-1388.52" y2="58.6" gradientTransform="translate(266827 -11200) scale(192)" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#1a3aaa"/><stop offset=".55" stop-color="#00bcd4"/><stop offset="1" stop-color="#7eefc0"/></linearGradient></defs><rect class="mt-logo-bg" fill="url(#mt-grad-2)" x="39.76" y="51.37" width="192" height="192" rx="40" ry="40"/><path class="mt-logo-white" d="M105.76,96.87h42c6.63,0,12,5.37,12,12v6h12v-6c0-13.25-10.75-24-24-24h-42c-6.63,0-12,5.37-12,12v96c0,6.63,5.37,12,12,12h60c6.63,0,12-5.37,12-12h0v-19.02l-12,7.02v12h-60v-96Z"/><polyline class="mt-logo-stroke-r" points="147.76 96.87 147.76 120.87 171.76 120.87"/><line class="mt-logo-stroke" x1="165.76" y1="150.87" x2="117.76" y2="150.87"/><line class="mt-logo-stroke" x1="171.76" y1="174.87" x2="117.76" y2="174.87"/><text class="mt-logo-name" transform="translate(267.79 156.69)"><tspan x="0" y="0">MediaTrack</tspan></text><text class="mt-logo-sub" transform="translate(271.92 216.76)"><tspan x="0" y="0">Media Transfer Tracking</tspan></text></svg></div>
     <div class="login-card">
       <div class="login-title">Create Account</div>
-      <div class="login-sub">get your own isolated database & team access</div>
+      <div class="login-sub">sign up to start tracking media transfers</div>
       <div class="login-error" id="reg-error"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><span id="reg-error-msg"></span></div>
       <div class="login-field">
         <label class="login-label">Full Name</label>
@@ -945,10 +945,6 @@ tbody tr:hover .row-actions{opacity:1}
       <div class="login-field">
         <label class="login-label">Email <span style="color:var(--red)">*</span></label>
         <input class="login-input" type="email" id="reg-email" placeholder="you@email.com" autocapitalize="off" autocomplete="email">
-      </div>
-      <div class="login-field">
-        <label class="login-label">Workspace / Studio Name <span style="color:var(--red)">*</span></label>
-        <input class="login-input" type="text" id="reg-workspace" placeholder="e.g. Studio Cahaya Bali" autocapitalize="words">
       </div>
       <div class="login-field">
         <label class="login-label">Password <span style="color:var(--red)">*</span></label>
@@ -2460,7 +2456,7 @@ async function sbLoadTransfers(eventId){
 // INSERT one transfer row
 async function sbSubmitTransfer(payload){
   return wsInsert('transfers',{
-    workspace_id: getWorkspaceId(),
+    user_id:      _authUserId,
     event_id:     payload.eventId,
     nama:         payload.nama,
     peran:        payload.peran,
@@ -2847,50 +2843,41 @@ let _pendingReg = null;
 async function doRegister(){
   const displayName=(document.getElementById('reg-name')?.value||'').trim();
   const email=(document.getElementById('reg-email')?.value||'').trim().toLowerCase();
-  const wsName=(document.getElementById('reg-workspace')?.value||'').trim();
   const pass=(document.getElementById('reg-pass')?.value||'');
   const btn=document.getElementById('reg-btn');
   const showErr=m=>{const el=document.getElementById('reg-error');const ms=document.getElementById('reg-error-msg');if(el)el.classList.add('show');if(ms)ms.textContent=m;};
 
-  if(!email||!wsName||!pass){showErr('All fields are required.');return;}
+  if(!email||!pass){showErr('Email and password are required.');return;}
   if(pass.length<6){showErr('Password must be at least 6 characters.');return;}
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){showErr('Enter a valid email address.');return;}
 
   btn.disabled=true;btn.innerHTML='<span class="spin"></span> Creating...';
   try{
-    // 1. Sign up via Supabase Auth (email verification will be sent)
-    const authData=await sbAuthSignUp(email,pass,{
-      display_name: displayName||email.split('@')[0],
-      workspace_name: wsName
+    const authData=await sbAuthSignUp(email, pass, {
+      display_name: displayName||email.split('@')[0]
     });
-
-    // When email confirmation is ON, Supabase returns user but no session yet
-    const userId=authData.user?.id||authData.id;
     const needsVerification=!authData.session&&!authData.access_token;
-
     if(needsVerification){
-      // Store pending reg data -- workspace will be created after email verify + first login
-      _pendingReg={email,wsName,displayName:displayName||email.split('@')[0],userId};
-      localStorage.setItem('mt_pending_reg',JSON.stringify(_pendingReg));
-      // Show confirmation screen
       showVerificationSent(email);
       return;
     }
-
-    // If email confirmation is OFF (dev mode) -- session is returned immediately
+    // Email confirmation OFF (dev) — session returned immediately, go straight to app
     const token=authData.session?.access_token||authData.access_token;
-    _authToken=token;_authUserId=userId;
-    if(token)localStorage.setItem('mt_token',token);
-    if(userId)localStorage.setItem('mt_uid',userId);
-
-    await _createWorkspaceForUser(userId,wsName,displayName||email.split('@')[0],token);
-  }catch(err2){
-    console.error('[register]',err2);
-    // Handle "User already registered"
-    if(err2.message?.toLowerCase().includes('already registered')||err2.message?.includes('already exists')){
+    const userId=authData.user?.id||authData.id;
+    _authToken=token; _authUserId=userId;
+    if(token) localStorage.setItem('mt_token',token);
+    if(authData.session?.refresh_token) localStorage.setItem('mt_refresh_token', authData.session.refresh_token);
+    if(userId) localStorage.setItem('mt_uid',userId);
+    const name=displayName||email.split('@')[0];
+    const sess={username:email,role:'data_manager',displayName:name,expires:Date.now()+SESSION_TTL,authToken:token,userId};
+    saveSession(sess);
+    bootApp(sess);
+  }catch(err){
+    console.error('[register]',err);
+    if(err.message?.toLowerCase().includes('already registered')||err.message?.includes('already exists')){
       showErr('This email is already registered. Try signing in.');
     } else {
-      showErr(err2.message||'Registration failed. Try again.');
+      showErr(err.message||'Registration failed. Try again.');
     }
   }finally{
     btn.disabled=false;
@@ -2900,18 +2887,48 @@ async function doRegister(){
 
 /* -- Create workspace after auth is confirmed -- */
 async function _createWorkspaceForUser(userId, wsName, displayName, token){
-  if(token)_authToken=token;
-  if(userId)_authUserId=userId;
+  // IMPORTANT: set token FIRST before any fetch so sbHeadersAuth() picks it up
+  if(token){ _authToken=token; localStorage.setItem('mt_token',token); }
+  if(userId) _authUserId=userId;
+
+  // Helper: authenticated fetch using the user's JWT (not anon key)
+  const authFetch = (path, body) => fetch(`${SB_URL}/rest/v1/${path}`, {
+    method: 'POST',
+    headers: {
+      'apikey': SB_KEY,
+      'Authorization': 'Bearer ' + _authToken,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    },
+    body: JSON.stringify(body)
+  });
+
   try{
-    // Create workspace
-    const wsRows=await wsInsert('workspaces',{name:wsName,owner_id:userId});
-    const wsId=wsRows[0]?.id;
-    if(!wsId)throw new Error('Failed to create workspace');
-    // Add as owner
-    await wsInsert('workspace_members',{workspace_id:wsId,user_id:userId,role:'owner',display_name:displayName,invited_by:userId});
-    return {wsId,wsName};
+    // 1. Create workspace
+    const wsRes = await authFetch('workspaces', { name: wsName, owner_id: userId });
+    if(!wsRes.ok){
+      const t = await wsRes.text();
+      throw new Error('INSERT workspaces: ' + wsRes.status + ' ' + t);
+    }
+    const wsRows = await wsRes.json();
+    const wsId = wsRows[0]?.id;
+    if(!wsId) throw new Error('Failed to create workspace — no ID returned');
+
+    // 2. Add user as owner in workspace_members
+    const memRes = await authFetch('workspace_members', {
+      workspace_id: wsId,
+      user_id: userId,
+      role: 'owner',
+      display_name: displayName,
+      invited_by: userId
+    });
+    if(!memRes.ok){
+      const t = await memRes.text();
+      throw new Error('INSERT workspace_members: ' + memRes.status + ' ' + t);
+    }
+    return { wsId, wsName };
   }catch(e){
-    console.error('[create workspace]',e);
+    console.error('[create workspace]', e);
     throw e;
   }
 }
@@ -2967,54 +2984,17 @@ async function doLogin(){
   // Supabase Auth login
   btn.disabled=true;btn.innerHTML='<span class="spin"></span> Signing in...';
   try{
-    const email=emailOrUser.includes('@')?emailOrUser:emailOrUser;
-    const d=await sbAuthSignIn(email,pass);
+    const d=await sbAuthSignIn(emailOrUser, pass);
     _authToken=d.access_token;
     _authUserId=d.user?.id;
-    if(!_authToken)throw new Error('Login failed -- no session returned. Please verify your email first.');
-    localStorage.setItem('mt_token',_authToken);
-    localStorage.setItem('mt_uid',_authUserId);
-
+    if(!_authToken) throw new Error('Login failed — no session returned. Please verify your email first.');
+    localStorage.setItem('mt_token', _authToken);
+    localStorage.setItem('mt_uid', _authUserId);
+    if(d.refresh_token) localStorage.setItem('mt_refresh_token', d.refresh_token);
     const userMeta=d.user?.user_metadata||{};
-    let displayName=userMeta.display_name||email.split('@')[0];
-
-    // Load existing workspace membership
-    const members=await wsGet('workspace_members',{
-      'user_id':'eq.'+_authUserId,
-      'select':'*,workspaces(name)',
-      'order':'created_at.asc',
-      'limit':'1'
-    });
-
-    let wsId=null,wsName='My Workspace',wsRole='member';
-
-    if(members.length){
-      // Already has workspace
-      const m=members[0];
-      wsId=m.workspace_id;wsRole=m.role||'member';
-      wsName=m.workspaces?.name||wsName;
-      displayName=m.display_name||displayName;
-    } else {
-      // First login after email verification -- create workspace from pending reg
-      const pendingRaw=localStorage.getItem('mt_pending_reg');
-      const pending=pendingRaw?JSON.parse(pendingRaw):null;
-      const wsNameToCreate=pending?.wsName||userMeta.workspace_name||'My Workspace';
-      const dnToCreate=pending?.displayName||displayName;
-      try{
-        const {wsId:newWsId,wsName:newWsName}=await _createWorkspaceForUser(_authUserId,wsNameToCreate,dnToCreate,_authToken);
-        wsId=newWsId;wsName=newWsName;wsRole='owner';displayName=dnToCreate;
-        localStorage.removeItem('mt_pending_reg');
-        toast('(ok) Workspace "'+wsName+'" created! Welcome.','ok');
-      }catch(wsErr){
-        console.warn('[workspace create on first login]',wsErr);
-        // Continue login even if workspace creation fails -- can be retried
-        toast('Login OK but workspace creation failed. Please contact support.','err');
-      }
-    }
-
-    const sess={username:email,role:'data_manager',displayName,expires:Date.now()+SESSION_TTL,workspaceId:wsId,workspaceName:wsName,workspaceRole:wsRole,authToken:_authToken,userId:_authUserId};
+    const displayName=userMeta.display_name||emailOrUser.split('@')[0];
+    const sess={username:emailOrUser,role:'data_manager',displayName,expires:Date.now()+SESSION_TTL,authToken:_authToken,userId:_authUserId};
     saveSession(sess);
-    if(wsId)setWorkspace(wsId,wsName,wsRole);
     bootApp(sess);
   }catch(err2){
     console.error('[login]',err2);
@@ -3257,12 +3237,25 @@ function showLoginErr(msg){
 }
 function saveSession(s){localStorage.setItem(SESSION_KEY,JSON.stringify(s));}
 function loadSession(){try{const r=localStorage.getItem(SESSION_KEY);if(!r)return null;const s=JSON.parse(r);if(Date.now()>s.expires){localStorage.removeItem(SESSION_KEY);return null;}return s;}catch{return null;}}
-function doLogout(){localStorage.removeItem(SESSION_KEY);location.reload();}
+function doLogout(){
+  if(_tokenRefreshTimer) clearInterval(_tokenRefreshTimer);
+  if(_autoRefreshTimer) clearInterval(_autoRefreshTimer);
+  localStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem('mt_token');
+  localStorage.removeItem('mt_uid');
+  localStorage.removeItem('mt_refresh_token');
+  _authToken=null; _authUserId=null;
+  location.reload();
+}
 
 /* == BOOT APP == */
 function bootApp(sess){
   currentUser=sess.displayName||sess.username;
   currentRole=sess.role||'data_manager';
+  // Restore auth token + userId from session (survives page reload)
+  if(sess.authToken){ _authToken=sess.authToken; localStorage.setItem('mt_token',sess.authToken); }
+  if(sess.userId){ _authUserId=sess.userId; }
+  if(sess.workspaceId) setWorkspace(sess.workspaceId, sess.workspaceName||'My Workspace', sess.workspaceRole||'member');
   document.getElementById('login-screen')?.classList.add('hidden');
   document.getElementById('register-screen') && (document.getElementById('register-screen').style.display='none');
   document.getElementById('app')?.classList.add('visible');
@@ -5207,6 +5200,46 @@ function _setFreshnessStale(){
   if(label)label.textContent='Load failed';
 }
 
+/* == TOKEN REFRESH == */
+let _tokenRefreshTimer = null;
+
+async function sbRefreshToken() {
+  const refreshToken = localStorage.getItem('mt_refresh_token');
+  if (!refreshToken) return; // guest or no refresh token saved
+  try {
+    const r = await fetch(`${SB_URL}/auth/v1/token?grant_type=refresh_token`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: refreshToken })
+    });
+    if (!r.ok) {
+      // Refresh failed — session expired, force logout
+      console.warn('[token refresh] failed, logging out');
+      toast('Session expired. Please sign in again.', 'err');
+      setTimeout(() => doLogout(), 2000);
+      return;
+    }
+    const d = await r.json();
+    if (d.access_token) {
+      _authToken = d.access_token;
+      localStorage.setItem('mt_token', _authToken);
+      // Save new refresh token (Supabase rotates it)
+      if (d.refresh_token) localStorage.setItem('mt_refresh_token', d.refresh_token);
+      // Update session object
+      const sess = loadSession();
+      if (sess) { sess.authToken = _authToken; saveSession(sess); }
+    }
+  } catch (e) {
+    console.warn('[token refresh] error:', e);
+  }
+}
+
+function startTokenRefresh() {
+  if (_tokenRefreshTimer) clearInterval(_tokenRefreshTimer);
+  // Refresh token every 45 minutes (Supabase JWTs expire in 1 hour by default)
+  _tokenRefreshTimer = setInterval(sbRefreshToken, 45 * 60 * 1000);
+}
+
 function startAutoRefresh(){
   if(_autoRefreshTimer)clearInterval(_autoRefreshTimer);
   _autoRefreshTimer=setInterval(()=>{
@@ -5216,6 +5249,8 @@ function startAutoRefresh(){
   // Tick the "X ago" label every 5 seconds
   if(_freshnessTimer)clearInterval(_freshnessTimer);
   _freshnessTimer=setInterval(_updateFreshnessLabel,5000);
+  // Start JWT refresh cycle
+  startTokenRefresh();
 }
 
 /* == SCHEDULE STRIP (form sidebar) == */
