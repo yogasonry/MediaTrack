@@ -4,14 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MediaTrack</title>
-<link rel="manifest" href="/manifest.json">
+<link rel="manifest" href="data:application/json,{%22name%22:%22MediaTrack%22,%22short_name%22:%22MediaTrack%22,%22start_url%22:%22/%22,%22display%22:%22standalone%22,%22background_color%22:%22%23f4f6fa%22,%22theme_color%22:%22%2300bcd4%22,%22icons%22:[{%22src%22:%22https://raw.githubusercontent.com/yogasonry/MediaTrack/main/icon-192.png%22,%22sizes%22:%22192x192%22,%22type%22:%22image/png%22}]}">
 <meta name="theme-color" content="#00bcd4">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="MediaTrack">
-<link rel="apple-touch-icon" href="/icon-192.svg">
-<link rel="icon" type="image/svg+xml" href="/icon-192.svg">
+<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/yogasonry/MediaTrack/main/icon-192.png">
+<link rel="icon" type="image/png" href="https://raw.githubusercontent.com/yogasonry/MediaTrack/main/icon-192.png">
+<link rel="shortcut icon" href="https://raw.githubusercontent.com/yogasonry/MediaTrack/main/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -3137,65 +3138,100 @@ function showVerificationSent(email){
 /* -- LOGIN (replaces original) -- */
 /* ── GOOGLE SIGN-IN ── */
 async function doGoogleSignIn(){
-  const btn = document.getElementById('google-login-btn');
-  if(btn){ btn.disabled=true; btn.textContent='Redirecting…'; }
-  try {
-    const res = await fetch(`${SB_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(window.location.href)}`, {
-      method:'GET', redirect:'manual'
-    });
-    // Supabase returns a redirect — use signInWithOAuth via redirect
-    const { data, error } = await _sbOAuth('google');
-    if(error) throw error;
-  } catch(e) {
-    // Fallback: direct redirect approach
-    const redirectTo = encodeURIComponent(window.location.origin + window.location.pathname);
-    window.location.href = `${SB_URL}/auth/v1/authorize?provider=google&redirect_to=${redirectTo}`;
-  }
-}
-
-// Helper: call Supabase OAuth via redirect
-async function _sbOAuth(provider){
+  const btns = document.querySelectorAll('.google-btn');
+  btns.forEach(b=>{ b.disabled=true; b.innerHTML='<span style="opacity:.7">Redirecting to Google…</span>'; });
   const redirectTo = 'https://mediatrack.pages.dev/';
-  const url = `${SB_URL}/auth/v1/authorize?provider=${provider}&redirect_to=${encodeURIComponent(redirectTo)}`;
-  window.location.href = url;
-  return { data: null, error: null };
+  window.location.href = `${SB_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectTo)}`;
 }
 
-// On page load: check if returning from OAuth redirect (hash contains access_token)
+// On page load: check if returning from OAuth redirect
+// Supabase returns tokens either in URL hash or as a session cookie
 (function _checkOAuthReturn(){
+  // Method 1: hash fragment (#access_token=...)
   const hash = window.location.hash;
-  if(!hash || !hash.includes('access_token')) return;
-  const params = new URLSearchParams(hash.replace('#',''));
-  const accessToken = params.get('access_token');
-  const refreshToken = params.get('refresh_token');
-  if(!accessToken) return;
+  if(hash && hash.includes('access_token')){
+    const params = new URLSearchParams(hash.replace(/^#/,''));
+    const accessToken = params.get('access_token');
+    const refreshToken = params.get('refresh_token');
+    if(accessToken){
+      // Clean URL immediately
+      history.replaceState(null,'',window.location.pathname);
+      _handleOAuthToken(accessToken, refreshToken);
+      return;
+    }
+  }
 
-  // Clear hash from URL
-  history.replaceState(null,'',window.location.pathname + window.location.search);
+  // Method 2: query string (?access_token=... some Supabase versions)
+  const search = window.location.search;
+  if(search && search.includes('access_token')){
+    const params = new URLSearchParams(search);
+    const accessToken = params.get('access_token');
+    const refreshToken = params.get('refresh_token');
+    if(accessToken){
+      history.replaceState(null,'',window.location.pathname);
+      _handleOAuthToken(accessToken, refreshToken);
+      return;
+    }
+  }
 
-  // Fetch user info from Supabase
-  fetch(`${SB_URL}/auth/v1/user`, {
-    headers:{ 'Authorization':'Bearer '+accessToken, 'apikey': SB_KEY }
-  })
-  .then(r=>r.json())
-  .then(user=>{
-    if(!user || !user.email) return;
-    const displayName = user.user_metadata?.full_name || user.user_metadata?.name || user.email.split('@')[0];
+  // Method 3: Supabase stores session in localStorage after OAuth
+  // Check for existing valid Supabase session in localStorage
+  try {
+    const sbKey = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
+    if(sbKey){
+      const sbSession = JSON.parse(localStorage.getItem(sbKey));
+      if(sbSession && sbSession.access_token && sbSession.expires_at * 1000 > Date.now()){
+        // Check we don't already have an app session
+        const existingSession = localStorage.getItem('dmt_session');
+        if(!existingSession){
+          _handleOAuthToken(sbSession.access_token, sbSession.refresh_token);
+        }
+      }
+    }
+  } catch(e){ console.warn('OAuth session check error:', e); }
+})();
+
+async function _handleOAuthToken(accessToken, refreshToken){
+  try {
+    const res = await fetch(`${SB_URL}/auth/v1/user`, {
+      headers:{
+        'Authorization': 'Bearer ' + accessToken,
+        'apikey': SB_KEY,
+        'Content-Type': 'application/json'
+      }
+    });
+    if(!res.ok) throw new Error('Failed to fetch user: ' + res.status);
+    const user = await res.json();
+    if(!user || !user.email) throw new Error('No user email returned');
+
+    const displayName = user.user_metadata?.full_name
+      || user.user_metadata?.name
+      || user.email.split('@')[0];
+
+    _authToken  = accessToken;
+    _authUserId = user.id;
+
     const sess = {
-      username: user.email,
-      role: 'data_manager',
+      username:    user.email,
+      role:        'data_manager',
       displayName,
-      expires: Date.now() + SESSION_TTL,
-      authToken: accessToken,
-      userId: user.id
+      expires:     Date.now() + SESSION_TTL,
+      authToken:   accessToken,
+      userId:      user.id
     };
-    _authToken   = accessToken;
-    _authUserId  = user.id;
     localStorage.setItem('dmt_session', JSON.stringify(sess));
     startSession(sess);
-  })
-  .catch(err=>{ console.error('OAuth return error:', err); });
-})();
+  } catch(err){
+    console.error('OAuth login error:', err);
+    // Show error on login screen
+    const errEl = document.getElementById('error-msg');
+    const errWrap = document.getElementById('login-error');
+    if(errEl && errWrap){
+      errEl.textContent = 'Google sign-in failed. Please try again.';
+      errWrap.style.display = 'flex';
+    }
+  }
+}
 
 async function doLogin(){
   const emailOrUser=document.getElementById('login-user').value.trim().toLowerCase();
