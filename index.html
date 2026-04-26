@@ -5258,16 +5258,11 @@ function buildScheduleList(){
    Fallback: localStorage cache jika Supabase belum configured
 =========================================================== */
 function getDevices(){
-  // Per-event device cache: key = dmt_devices_<eventId>
-  const key=DEVICES_KEY+'_'+getActiveEventId();
+  // Per-event device cache: key = {userId}_dmt_devices_{eventId}
+  const key=_uk(DEVICES_KEY)+'_'+getActiveEventId();
   const raw=localStorage.getItem(key);
   if(raw!==null){
     try{const s=JSON.parse(raw);if(Array.isArray(s))return s;}catch{}
-  }
-  // Fallback: shared legacy key (backward compat)
-  const legacyRaw=localStorage.getItem(_uk(DEVICES_KEY));
-  if(legacyRaw!==null){
-    try{const s=JSON.parse(legacyRaw);if(Array.isArray(s))return s;}catch{}
   }
   return [...(DEVICES_DEFAULT||[])];
 }
