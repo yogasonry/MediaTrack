@@ -861,6 +861,12 @@ tbody tr:hover .row-actions{opacity:1}
 @media(max-width:700px){
   .crew-settings-row{grid-template-columns:1fr 80px 28px}
   .crew-settings-col-header{grid-template-columns:1fr 80px 28px}
+  /* Crew action buttons full width on mobile */
+  .settings-action-btns{width:100%}
+  .settings-action-btns .settings-sec-btn{flex:1;justify-content:center}
+  .settings-action-btns .settings-save-btn{flex:1}
+  /* Hide Phone column header */
+  .crew-col-phone{display:none}
 }
 
 /* Slot settings row */
@@ -1603,12 +1609,12 @@ tbody tr:hover .row-actions{opacity:1}
               <div id="device-edit-view" style="display:none">
                 <div class="device-list-items" id="device-list"></div>
                 <button class="add-device-btn" onclick="addDevice()">+ Add storage device</button>
-                <div style="display:flex;gap:8px;margin-top:14px">
-                  <button class="submit-btn" onclick="saveDevices()" style="flex:1">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                    Save &amp; Lock
+                <div style="display:flex;gap:8px;margin-top:12px;align-items:center">
+                  <button onclick="saveDevices()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 14px;border-radius:var(--r-sm);background:var(--grad);border:none;cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:700;color:#fff;box-shadow:0 4px 14px var(--grad-shadow);white-space:nowrap;transition:opacity .15s" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    Save & Lock
                   </button>
-                  <button class="submit-btn" onclick="cancelEditDevices()" style="background:none;border:1.5px solid var(--border2);color:var(--ink2);box-shadow:none;padding:8px 14px">
+                  <button onclick="cancelEditDevices()" style="padding:10px 16px;border-radius:var(--r-sm);background:none;border:1.5px solid var(--border2);color:var(--ink2);cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:600;white-space:nowrap;transition:all .12s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--ink2)'">
                     Cancel
                   </button>
                 </div>
@@ -2479,6 +2485,7 @@ const DMT_CONFIG = {
   roleColors: {
     'Director':              '#e84f8c',
     'DOP / Camera Operator': '#0ca97a',
+    'Videographer':          '#00b4d8',
     'Photographer':          '#3d6bff',
     'Drone Pilot':           '#e86a2a',
     'Sound Engineer':        '#0099aa',
@@ -2496,6 +2503,7 @@ const DMT_CONFIG = {
   mediaTypes: ['Video', 'Photo', 'Audio', 'RAW/Proxy', 'BTS', 'Mixed', 'Script/Doc'],
   mediaMap: {
     'DOP / Camera Operator': 'Video',
+    'Videographer':          'Video',
     'Photographer':          'Photo',
     'Drone Pilot':           'Video',
     'Sound Engineer':        'Audio',
@@ -4121,6 +4129,7 @@ function _wizBodyHtml(stepId){
   if(stepId==='crew'){
     const rolePresets=[
       {role:'Photographer',color:'var(--blue)'},
+      {role:'Videographer',color:'var(--accent)'},
       {role:'DOP / Camera Operator',color:'var(--green)'},
       {role:'Drone Pilot',color:'var(--orange)'},
       {role:'Sound Engineer',color:'var(--teal)'},
@@ -6743,22 +6752,24 @@ function renderCrewSettings() {
     }
     // Unlocked row — editable with lock button
     return `<div class="crew-settings-row" id="crew-row-${i}" data-locked="0"
-      style="background:var(--bg);border-radius:var(--r-sm);padding:6px 8px;border:1.5px solid var(--accent);display:grid;grid-template-columns:1fr auto auto auto;gap:6px;align-items:center">
+      style="background:var(--bg);border-radius:var(--r-sm);padding:6px 8px;border:1.5px solid var(--accent);display:grid;grid-template-columns:1fr minmax(100px,140px) auto auto;gap:6px;align-items:center">
       <input type="text" value="${x(c.name)}" id="cr-name-${i}" placeholder="Crew name"
         style="font-size:13px;font-weight:600;background:transparent;border:none;outline:none;color:var(--ink);font-family:var(--sans);width:100%;min-width:0">
-      <select id="cr-role-${i}" style="font-size:11px;background:var(--surface);border:1px solid var(--border2);border-radius:5px;padding:4px 6px;color:var(--ink2);font-family:var(--sans);width:100%;min-width:0;max-width:80px;overflow:hidden;text-overflow:ellipsis">
+      <select id="cr-role-${i}" style="font-size:12px;background:var(--surface);border:1px solid var(--border2);border-radius:5px;padding:5px 6px;color:var(--ink2);font-family:var(--sans);width:100%;min-width:0">
         <option value="">-- Role --</option>
         ${CREW_ROLES.map(r => `<option value="${x(r)}"${c.role===r?' selected':''}>${x(r)}</option>`).join('')}
       </select>
-      <input type="text" value="${x(c.phone||'')}" id="cr-phone-${i}" placeholder="Phone"
-        class="crew-row-phone-input"
-        style="font-size:11px;font-family:var(--mono);background:transparent;border:1px solid var(--border2);border-radius:5px;padding:4px 8px;color:var(--ink2);width:90px"
-        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'">
-      <button onclick="_crewLock(${i})" title="Kunci / Lock"
-        style="width:28px;height:28px;border-radius:6px;background:var(--accent-bg);border:1px solid rgba(0,180,216,.3);cursor:pointer;color:var(--accent);display:grid;place-items:center;flex-shrink:0;transition:all .12s"
+      <button onclick="_crewLock(${i})" title="Lock"
+        style="width:32px;height:32px;border-radius:6px;background:var(--accent-bg);border:1px solid rgba(0,180,216,.3);cursor:pointer;color:var(--accent);display:grid;place-items:center;flex-shrink:0;transition:all .12s"
         onmouseover="this.style.background='var(--accent)';this.style.color='#fff'"
         onmouseout="this.style.background='var(--accent-bg)';this.style.color='var(--accent)'">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      </button>
+      <button onclick="removeCrewRow(${i})" title="Remove"
+        style="width:32px;height:32px;border-radius:6px;background:none;border:1px solid var(--border2);cursor:pointer;color:var(--dim);display:grid;place-items:center;flex-shrink:0;transition:all .12s"
+        onmouseover="this.style.background='var(--red-bg)';this.style.borderColor='rgba(232,56,79,.3)';this.style.color='var(--red)'"
+        onmouseout="this.style.background='none';this.style.borderColor='var(--border2)';this.style.color='var(--dim)'">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>`;
   }).join('');
