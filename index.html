@@ -2699,6 +2699,65 @@ async function sbSaveDevices(eventId, devices){
   if(!devices.length)return [];
   return wsInsert('devices', devices.map(name=>({event_id:eventId,workspace_id:getWorkspaceId()||null, name})));
 }
+
+/* == SUPABASE EVENTS SYNC == */
+async function sbLoadEvents(){
+  try{
+    const rows = await wsGet('events',{
+      'select': 'id,name,location,date,date_start,date_end,created_at',
+      'order':  'created_at.asc'
+    });
+    return rows.map(r=>({
+      id:        r.id,
+      name:      r.name||'',
+      location:  r.location||'',
+      date:      r.date||'',
+      dateStart: r.date_start||'',
+      dateEnd:   r.date_end||'',
+      createdAt: r.created_at ? new Date(r.created_at).getTime() : Date.now()
+    }));
+  }catch(e){
+    console.warn('[sbLoadEvents] failed:', e.message);
+    return null;
+  }
+}
+
+async function sbSaveEvent(ev){
+  if(!_authToken) return;
+  try{
+    await wsInsert('events',{
+      id:           ev.id,
+      name:         ev.name,
+      location:     ev.location||'',
+      date:         ev.date||'',
+      date_start:   ev.dateStart||null,
+      date_end:     ev.dateEnd||null,
+      workspace_id: getWorkspaceId()||null
+    });
+  }catch(e){
+    try{
+      await wsUpdate('events',{'id':'eq.'+ev.id},{
+        name:       ev.name,
+        location:   ev.location||'',
+        date:       ev.date||'',
+        date_start: ev.dateStart||null,
+        date_end:   ev.dateEnd||null
+      });
+    }catch(e2){
+      console.warn('[sbSaveEvent] upsert failed:', e2.message);
+    }
+  }
+}
+
+async function sbDeleteEvent(eventId){
+  if(!_authToken) return;
+  try{
+    await wsDelete('events',{'id':'eq.'+eventId});
+  }catch(e){
+    console.warn('[sbDeleteEvent] failed:', e.message);
+  }
+}
+
 let rows=[], filterStage='all', filterRole='all', currentUser=null, currentRole='data_manager';
 function isGuest(){return currentRole==='guest';}
 
@@ -2717,7 +2776,39 @@ addEventListener('DOMContentLoaded',()=>{
   _authToken = localStorage.getItem('mt_token') || null;
   _authUserId = localStorage.getItem('mt_uid') || null;
   const sess=loadSession();
-  if(sess){bootApp(sess);}
+  if(sess){
+    const _bootRefreshToken = localStorage.getItem('mt_refresh_token');
+    if(_bootRefreshToken){
+      // Silently refresh JWT before booting — prevents 401 on re-open after token expired
+      (async()=>{
+        try{
+          const _r = await fetch(`${SB_URL}/auth/v1/token?grant_type=refresh_token`,{
+            method:'POST',
+            headers:{'apikey':SB_KEY,'Content-Type':'application/json'},
+            body:JSON.stringify({refresh_token:_bootRefreshToken})
+          });
+          if(_r.ok){
+            const _d = await _r.json();
+            if(_d.access_token){
+              _authToken = _d.access_token;
+              localStorage.setItem('mt_token', _authToken);
+              if(_d.refresh_token) localStorage.setItem('mt_refresh_token', _d.refresh_token);
+              sess.authToken = _authToken;
+              saveSession(sess);
+              console.log('[boot] token refreshed OK');
+            }
+          } else {
+            console.warn('[boot] token refresh failed ('+_r.status+') — using cached token');
+          }
+        }catch(e){
+          console.warn('[boot] token refresh error:', e.message, '— using cached token');
+        }
+        bootApp(sess);
+      })();
+    } else {
+      bootApp(sess);
+    }
+  }
   // else: login screen stays visible
 });
 
@@ -2969,7 +3060,10 @@ let _authToken = null;
 let _authUserId = null;
 function sbHeadersAuth(extra={}){
   const token = _authToken || localStorage.getItem('mt_token');
-  if(!token) throw new Error('Not authenticated — please sign in');
+  if(!token){
+    console.warn('[sbHeadersAuth] no auth token — falling back to anon key. Some requests may return 401.');
+    return {'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=representation',...extra};
+  }
   return {'apikey':SB_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json','Prefer':'return=representation',...extra};
 }
 
@@ -3589,6 +3683,13 @@ function bootApp(sess){
   const _activeEv=getActiveEvent();
   if(_activeEv)applyEvent(_activeEv);
   syncDevicesFromGAS();
+  // Pull events then crew+schedule from Supabase (chained so events load first)
+  loadEventsFromSupabase()
+    .then(()=>{
+      const _evId = getActiveEventId();
+      if(_evId) sbPullCrewAndSchedule(_evId).catch(e=>console.warn('[boot] pullCrew failed:',e.message));
+    })
+    .catch(e=>console.warn('[boot] loadEvents failed:',e.message));
   startAutoRefresh();
   if(typeof initCrewFromStorage === 'function') initCrewFromStorage();
   if(typeof initScheduleFromStorage === 'function') initScheduleFromStorage();
@@ -3804,7 +3905,32 @@ function getOrInitEvents(){
   // No auto-create -- return empty and let UI show empty state
   return getEvents();
 }
-function saveEvents(evs){localStorage.setItem(_eventsKey(),JSON.stringify(evs));}
+function saveEvents(evs){
+  localStorage.setItem(_eventsKey(),JSON.stringify(evs));
+  // No per-event Supabase push here — callers use sbSaveEvent/sbDeleteEvent directly
+}
+
+// Load events: try Supabase first, fallback to localStorage cache
+async function loadEventsFromSupabase(){
+  if(!_authToken) return; // not logged in yet
+  const remote = await sbLoadEvents();
+  if(!remote) return; // fetch failed, keep localStorage as-is
+  if(!remote.length) return; // empty remote — don't wipe local (fresh login edge case)
+  // Merge: remote is source of truth, but keep local if remote is subset
+  const local = getEvents();
+  const merged = remote;
+  // Preserve any local-only events not yet synced (shouldn't happen normally)
+  local.forEach(lev => {
+    if(!merged.find(r=>r.id===lev.id)) merged.push(lev);
+  });
+  merged.sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
+  saveEvents(merged);
+  renderSidebarEvents();
+  applyNavState();
+  const active = getActiveEvent();
+  if(active) applyEvent(active);
+  console.log('[events] loaded', merged.length, 'events from Supabase');
+}
 
 function getActiveEventId(){
   const evs=getEvents();
@@ -3833,6 +3959,8 @@ function setActiveEvent(id){
   renderSidebarEvents();
   try{ initCrewFromStorage(id); }catch(e){ console.warn('initCrew err:',e); }
   try{ initScheduleFromStorage(id); }catch(e){ console.warn('initSched err:',e); }
+  // Pull latest crew+schedule from Supabase for this event (overwrites local if remote has data)
+  sbPullCrewAndSchedule(id).catch(e=>console.warn('[setActiveEvent] pull failed:',e.message));
   rows=[];
   const body=document.getElementById('tbl-body');
   if(body)body.innerHTML=`<tr class="tbl-msg"><td colspan="10"><span class="spin"></span> Loading...</td></tr>`;
@@ -4230,7 +4358,7 @@ function _wizSaveStep(){
       initScheduleFromStorage(evId);
       buildScheduleFull();
       if(typeof buildScheduleStrip==='function')buildScheduleStrip();
-      sbUpsert('app_config',{key:'schedule',event_id:evId,value:stagesObj},'key,event_id').catch(()=>{});
+      sbUpsert('app_config',{key:'schedule',event_id:evId,workspace_id:getWorkspaceId()||null,value:stagesObj},'key,event_id').catch(()=>{});
     }
     _wizSelectedStages=new Set();
   }
@@ -4249,7 +4377,7 @@ function _wizSaveStep(){
       renderCrewSettings();
       buildDynamicChips();
       buildDynamicSelects();
-      sbUpsert('app_config',{key:'crew',event_id:evId,value:crewData},'key,event_id').catch(()=>{});
+      sbUpsert('app_config',{key:'crew',event_id:evId,workspace_id:getWorkspaceId()||null,value:crewData},'key,event_id').catch(()=>{});
     }
     _wizCrewCount=0;
   }
@@ -4371,6 +4499,7 @@ function wizNext(){
     const newEv={id,name,location,date,dateStart,dateEnd,createdAt:Date.now()};
     evs.push(newEv);
     saveEvents(evs);
+    sbSaveEvent(newEv).catch(e=>console.warn('[sync] event create failed:',e.message));
     _wizEventId=id;
     rows=[];
     updateStats();
@@ -4859,6 +4988,7 @@ function saveEvent(){
     const idx=evs.findIndex(e=>e.id===editingId);
     if(idx>=0){evs[idx]={...evs[idx],name,location,date,dateStart,dateEnd};}
     saveEvents(evs);
+    if(idx>=0) sbSaveEvent(evs[idx]).catch(e=>console.warn('[sync] event update failed:',e.message));
     const isActive=getActiveEventId()===editingId;
     if(isActive){applyEvent(evs[idx]);buildDayDropdown();}
     renderSidebarEvents();
@@ -4871,6 +5001,7 @@ function saveEvent(){
     const newEv={id,name,location,date,dateStart,dateEnd,createdAt:Date.now()};
     evs.push(newEv);
     saveEvents(evs);
+    sbSaveEvent(newEv).catch(e=>console.warn('[sync] event create failed:',e.message));
     renderSidebarEvents();
     applyNavState();
     closeEventModal();
@@ -4969,6 +5100,7 @@ async function deleteEvent(id){
   // -- Remove from event list --
   const remaining=evs.filter(e=>e.id!==id);
   saveEvents(remaining);
+  sbDeleteEvent(id).catch(e=>console.warn('[sync] event delete failed:',e.message));
   toast(`Event "${ev.name}" deleted`,'ok');
 
   if(!remaining.length){
@@ -5007,14 +5139,22 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeEventModal();})
 function testSupabaseConnection(){
   const btn=event.currentTarget;
   btn.disabled=true;btn.innerHTML='<span class="spin"></span> Testing...';
-  sbGet('transfers',{'limit':'1'})
+  // Use wsGet (authenticated with user JWT) instead of sbGet (anon key)
+  const testFn = _authToken
+    ? wsGet('transfers',{'limit':'1','select':'id'})
+    : sbGet('transfers',{'limit':'1','select':'id'});
+  testFn
     .then(()=>{
       toast('(ok) Supabase connected successfully!','ok');
       btn.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Connected';
       btn.style.color='var(--green)';btn.style.borderColor='rgba(12,169,122,.3)';
     })
     .catch(err=>{
-      toast('Connection failed: '+err.message,'err');
+      const isAuth = err.message&&(err.message.includes('401')||err.message.includes('authenticated'));
+      const msg = isAuth
+        ? 'Auth error (401) — token expired. Please sign out and sign back in.'
+        : 'Connection failed: '+err.message;
+      toast(msg,'err');
       btn.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Test Connection';
       btn.disabled=false;
     });
@@ -5493,6 +5633,7 @@ function _setFreshnessStale(){
 
 /* == TOKEN REFRESH == */
 let _tokenRefreshTimer = null;
+let _tokenRefreshFailCount = 0;
 
 async function sbRefreshToken() {
   const refreshToken = localStorage.getItem('mt_refresh_token');
@@ -5504,14 +5645,20 @@ async function sbRefreshToken() {
       body: JSON.stringify({ refresh_token: refreshToken })
     });
     if (!r.ok) {
-      // Refresh failed — session expired, force logout
-      console.warn('[token refresh] failed, logging out');
-      toast('Session expired. Please sign in again.', 'err');
-      setTimeout(() => doLogout(), 2000);
+      _tokenRefreshFailCount++;
+      if (_tokenRefreshFailCount >= 2) {
+        // Two consecutive failures = truly expired, force logout
+        console.warn('[token refresh] failed x2, logging out');
+        toast('Session expired. Please sign in again.', 'err');
+        setTimeout(() => doLogout(), 2000);
+      } else {
+        console.warn('[token refresh] failed ('+r.status+'), will retry next cycle');
+      }
       return;
     }
     const d = await r.json();
     if (d.access_token) {
+      _tokenRefreshFailCount = 0; // reset fail counter on success
       _authToken = d.access_token;
       localStorage.setItem('mt_token', _authToken);
       // Save new refresh token (Supabase rotates it)
@@ -5519,9 +5666,11 @@ async function sbRefreshToken() {
       // Update session object
       const sess = loadSession();
       if (sess) { sess.authToken = _authToken; saveSession(sess); }
+      console.log('[token refresh] OK');
     }
   } catch (e) {
-    console.warn('[token refresh] error:', e);
+    // Network error — don't logout, might be temporary offline
+    console.warn('[token refresh] network error:', e.message);
   }
 }
 
@@ -5529,6 +5678,9 @@ function startTokenRefresh() {
   if (_tokenRefreshTimer) clearInterval(_tokenRefreshTimer);
   // Refresh token every 45 minutes (Supabase JWTs expire in 1 hour by default)
   _tokenRefreshTimer = setInterval(sbRefreshToken, 45 * 60 * 1000);
+  // Also schedule an early refresh at 5 minutes as safety net
+  // (catches edge case where boot refresh happened just before token was about to expire)
+  setTimeout(sbRefreshToken, 5 * 60 * 1000);
 }
 
 function startAutoRefresh(){
@@ -6666,6 +6818,46 @@ function switchSettingsTab(tab) {
 }
 
 /* == CREW SETTINGS == */
+/* == SUPABASE CREW & SCHEDULE PULL == */
+
+// Fetch crew + schedule for one event from app_config, write to localStorage, apply to memory
+async function sbPullCrewAndSchedule(evId) {
+  if (!_authToken || !evId) return;
+  try {
+    const rows = await wsGet('app_config', {
+      'event_id': 'eq.' + evId,
+      'key':      'in.(crew,schedule,crewFocus)',
+      'select':   'key,value'
+    });
+
+    let gotCrew = false, gotSched = false;
+
+    rows.forEach(r => {
+      if (r.key === 'crew' && Array.isArray(r.value) && r.value.length) {
+        setCrewData(r.value, evId);
+        gotCrew = true;
+      }
+      if (r.key === 'crewFocus' && Array.isArray(r.value)) {
+        // stored alongside crew — will be re-derived in initCrewFromStorage
+        // but save raw so initCrew can use it
+        try { localStorage.setItem(_uk('dmt_crewFocus_') + evId, JSON.stringify(r.value)); } catch {}
+      }
+      if (r.key === 'schedule' && r.value && typeof r.value === 'object' && Object.keys(r.value).length) {
+        setScheduleData(r.value, evId);
+        gotSched = true;
+      }
+    });
+
+    if (gotCrew)  { initCrewFromStorage(evId); renderCrewSettings && renderCrewSettings(); }
+    if (gotSched) { initScheduleFromStorage(evId); buildScheduleFull && buildScheduleFull(); }
+
+    if (gotCrew || gotSched)
+      console.log('[pull] crew=' + gotCrew + ' schedule=' + gotSched + ' for event', evId);
+  } catch (e) {
+    console.warn('[sbPullCrewAndSchedule] failed:', e.message);
+  }
+}
+
 const CREW_KEY = 'dmt_crew';
 const CREW_ROLES = Object.keys(DMT_CONFIG.roleColors || {});
 
@@ -6838,7 +7030,7 @@ async function removeCrewRow(i) {
   updateCrewBadge();
   renderCrewSettings();
   // Sync ke Supabase
-  try { await sbUpsert('app_config',{key:'crew',event_id:getActiveEventId(),value:data},'key,event_id'); } catch {}
+  try { await sbUpsert('app_config',{key:'crew',event_id:getActiveEventId(),workspace_id:getWorkspaceId()||null,value:data},'key,event_id'); } catch {}
 }
 
 function collectCrewFromUI() {
@@ -6881,8 +7073,8 @@ async function saveCrew() {
   buildDynamicSelects();
   toast('Crew saved (' + data.length + ' member' + (data.length !== 1 ? 's' : '') + ')', 'ok');
   // Sync crew to Supabase app_config
-  try { await sbUpsert('app_config',{key:'crew',event_id:getActiveEventId(),value:data},'key,event_id'); } catch {}
-  if(uniqueRoles.length){ try { await sbUpsert('app_config',{key:'crewFocus',event_id:getActiveEventId(),value:uniqueRoles},'key,event_id'); } catch {} }
+  try { await sbUpsert('app_config',{key:'crew',event_id:getActiveEventId(),workspace_id:getWorkspaceId()||null,value:data},'key,event_id'); } catch {}
+  if(uniqueRoles.length){ try { await sbUpsert('app_config',{key:'crewFocus',event_id:getActiveEventId(),workspace_id:getWorkspaceId()||null,value:uniqueRoles},'key,event_id'); } catch {} }
 }
 
 async function resetCrewToDefault() {
@@ -6902,7 +7094,7 @@ async function resetCrewToDefault() {
   buildDynamicSelects();
   toast('Crew reset to defaults', 'ok');
   // Sync ke Supabase
-  try { await sbUpsert('app_config',{key:'crew',event_id:getActiveEventId(),value:defaultCrew},'key,event_id'); } catch {}
+  try { await sbUpsert('app_config',{key:'crew',event_id:getActiveEventId(),workspace_id:getWorkspaceId()||null,value:defaultCrew},'key,event_id'); } catch {}
 }
 
 /* == SCHEDULE SETTINGS == */
@@ -7196,7 +7388,7 @@ async function deleteStage(stage) {
   renderScheduleSettings();
   toast('Scene "' + stage + '" deleted', 'ok');
   // Sync ke Supabase
-  try { await sbUpsert('app_config',{key:'schedule',event_id:getActiveEventId(),value:data},'key,event_id'); } catch {}
+  try { await sbUpsert('app_config',{key:'schedule',event_id:getActiveEventId(),workspace_id:getWorkspaceId()||null,value:data},'key,event_id'); } catch {}
 }
 
 async function saveScheduleSettings() {
@@ -7218,7 +7410,7 @@ async function saveScheduleSettings() {
   toast('Scene list saved (' + Object.keys(data).length + ' scene' + (Object.keys(data).length !== 1 ? 's' : '') + ')', 'ok');
   // Sync to GAS AppConfig
   // Sync schedule to Supabase app_config
-  try { await sbUpsert('app_config',{key:'schedule',event_id:getActiveEventId(),value:data},'key,event_id'); } catch {}
+  try { await sbUpsert('app_config',{key:'schedule',event_id:getActiveEventId(),workspace_id:getWorkspaceId()||null,value:data},'key,event_id'); } catch {}
 }
 
 async function resetScheduleToDefault() {
@@ -7240,7 +7432,7 @@ async function resetScheduleToDefault() {
   renderScheduleSettings();
   toast('Scene list reset to defaults', 'ok');
   // Sync ke Supabase
-  try { await sbUpsert('app_config',{key:'schedule',event_id:getActiveEventId(),value:defaultSched},'key,event_id'); } catch {}
+  try { await sbUpsert('app_config',{key:'schedule',event_id:getActiveEventId(),workspace_id:getWorkspaceId()||null,value:defaultSched},'key,event_id'); } catch {}
 }
 
 /* Preserve original defaults on first load */
