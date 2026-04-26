@@ -2713,6 +2713,9 @@ addEventListener('DOMContentLoaded',()=>{
   if(isPublic){initPublicView();return;}
 
   // -- PRODUCTION LOGIN --
+  // Restore token immediately so Supabase calls have auth from the start
+  _authToken = localStorage.getItem('mt_token') || null;
+  _authUserId = localStorage.getItem('mt_uid') || null;
   const sess=loadSession();
   if(sess){bootApp(sess);}
   // else: login screen stays visible
@@ -2965,7 +2968,8 @@ async function sbAuthSignOut(token){
 let _authToken = null;
 let _authUserId = null;
 function sbHeadersAuth(extra={}){
-  const token = _authToken || SB_KEY; // fallback to anon if not logged in
+  const token = _authToken || localStorage.getItem('mt_token');
+  if(!token) throw new Error('Not authenticated — please sign in');
   return {'apikey':SB_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json','Prefer':'return=representation',...extra};
 }
 
@@ -3535,9 +3539,11 @@ function doLogout(){
 function bootApp(sess){
   currentUser=sess.displayName||sess.username;
   currentRole=sess.role||'data_manager';
-  // Restore auth token + userId from session (survives page reload)
-  if(sess.authToken){ _authToken=sess.authToken; localStorage.setItem('mt_token',sess.authToken); }
-  if(sess.userId){ _authUserId=sess.userId; }
+  // MUST restore auth token FIRST — before any Supabase calls
+  _authToken = sess.authToken || localStorage.getItem('mt_token') || null;
+  _authUserId = sess.userId || localStorage.getItem('mt_uid') || null;
+  if(_authToken) localStorage.setItem('mt_token', _authToken);
+  if(_authUserId) localStorage.setItem('mt_uid', _authUserId);
   if(sess.workspaceId) setWorkspace(sess.workspaceId, sess.workspaceName||'My Workspace', sess.workspaceRole||'member');
   document.getElementById('login-screen')?.classList.add('hidden');
   document.getElementById('register-screen') && (document.getElementById('register-screen').style.display='none');
