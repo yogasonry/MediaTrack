@@ -844,6 +844,21 @@ tbody tr:hover .row-actions{opacity:1}
   border-bottom:1px solid var(--border);margin-bottom:8px;
 }
 @media(max-width:700px){
+  /* Log header — compact layout */
+  .log-head{padding:10px 12px;gap:6px}
+  .log-title{font-size:12px;width:100%;flex-wrap:wrap}
+  .log-actions{margin-left:0;gap:4px}
+  .log-actions-divider{display:none}
+  .refresh-btn,.export-btn,.print-btn{padding:5px 9px;font-size:10px;gap:4px}
+  /* Filter row tighter */
+  .filter-row{padding:7px 12px}
+  .chip{padding:3px 9px;font-size:10px}
+  /* Stage filter chips — wrap to new line below title */
+  .log-head .filter-chips{flex:none;width:100%;order:3}
+  /* Hide "Refresh" text, keep icon only */
+  .refresh-label{display:none}
+}
+@media(max-width:700px){
   .crew-settings-row{grid-template-columns:1fr 80px 28px}
   .crew-settings-col-header{grid-template-columns:1fr 80px 28px}
 }
@@ -1323,7 +1338,7 @@ tbody tr:hover .row-actions{opacity:1}
               <span class="log-actions-divider"></span>
               <button class="refresh-btn" onclick="loadData()">
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
-                Refresh
+                <span class="refresh-label">Refresh</span>
               </button>
               <button class="export-btn" onclick="exportCSV('internal')">
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
