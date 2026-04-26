@@ -1028,10 +1028,6 @@ tbody tr:hover .row-actions{opacity:1}
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
         <span id="error-msg"></span>
       </div>
-      <div id="google-info-notice" style="display:none;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:12px 14px;margin-bottom:14px;font-family:var(--mono);font-size:12px;color:#1d4ed8;line-height:1.5">
-        <div style="font-weight:700;margin-bottom:4px">✓ Google account verified!</div>
-        <div>Tap <strong>Continue with Google</strong> below to sign in.</div>
-      </div>
       <div class="login-field">
         <label class="login-label">Email</label>
         <input class="login-input" type="email" id="login-user" placeholder="you@email.com" autocomplete="email" autocapitalize="off">
@@ -3142,16 +3138,25 @@ function showVerificationSent(email){
 
 /* -- LOGIN (replaces original) -- */
 /* ── GOOGLE SIGN-IN via Supabase JS SDK ── */
-// Inisialisasi Supabase client (SDK handle PKCE otomatis)
 let _sbClient = null;
 function _getSbClient(){
   if(_sbClient) return _sbClient;
   if(typeof supabase !== 'undefined'){
     _sbClient = supabase.createClient(SB_URL, SB_KEY, {
-      auth: {
-        flowType: 'pkce',
-        detectSessionInUrl: true,
-        persistSession: true
+      auth: { flowType: 'pkce', detectSessionInUrl: true, persistSession: true }
+    });
+    // Event listener — fired kapanpun session berubah (termasuk setelah PKCE exchange)
+    _sbClient.auth.onAuthStateChange((event, session) => {
+      if((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session){
+        // Cek apakah sudah ada app session yang valid untuk user yang sama
+        const existing = localStorage.getItem('dmt_session');
+        if(existing){
+          try {
+            const p = JSON.parse(existing);
+            if(p.expires > Date.now() && p.userId === session.user.id) return;
+          } catch(e){}
+        }
+        _applyGoogleSession(session);
       }
     });
   }
@@ -3160,64 +3165,26 @@ function _getSbClient(){
 
 async function doGoogleSignIn(){
   const btns = document.querySelectorAll('.google-btn');
-  btns.forEach(b=>{ b.disabled=true; b.innerHTML=`<svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg> Redirecting…`; });
+  const googleIcon = `<svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>`;
+  btns.forEach(b=>{ b.disabled=true; b.innerHTML=`${googleIcon} Redirecting…`; });
 
   const sb = _getSbClient();
-  if(!sb){
-    alert('Supabase SDK not loaded. Please refresh and try again.');
-    return;
-  }
+  if(!sb){ btns.forEach(b=>{b.disabled=false;}); return; }
+
   const { error } = await sb.auth.signInWithOAuth({
     provider: 'google',
-    options: {
-      redirectTo: 'https://mediatrack.pages.dev/'
-    }
+    options: { redirectTo: 'https://mediatrack.pages.dev/' }
   });
   if(error){
-    btns.forEach(b=>{ b.disabled=false; });
-    alert('Google sign-in error: ' + error.message);
+    btns.forEach(b=>{ b.disabled=false; b.innerHTML=`${googleIcon} Continue with Google`; });
   }
 }
 
-// On page load: SDK auto-detects PKCE code in URL and exchanges for session
-(async function _checkOAuthReturn(){
-  // Tampilkan notice jika ada ?code= di URL (returning from Google)
-  const hasCode = window.location.search.includes('code=');
-  if(hasCode){
-    const notice = document.getElementById('google-info-notice');
-    if(notice) notice.style.display = 'block';
-  }
-
-  const sb = _getSbClient();
-  if(!sb) return;
-
-  // SDK otomatis handle ?code= exchange saat detectSessionInUrl:true
-  const { data: { session }, error } = await sb.auth.getSession();
-
-  if(error){ console.warn('getSession error:', error.message); return; }
-  if(!session){
-    // Kalau ada code tapi session null, coba exchange sekali lagi
-    if(hasCode){
-      setTimeout(async()=>{
-        const { data: { session: s2 } } = await sb.auth.getSession();
-        if(s2) _applyGoogleSession(s2);
-      }, 1500);
-    }
-    return;
-  }
-
-  _applyGoogleSession(session);
-})();
+// Inisialisasi client saat script load — agar onAuthStateChange aktif sejak awal
+// termasuk saat halaman di-load kembali setelah redirect Google
+_getSbClient();
 
 function _applyGoogleSession(session){
-  const existing = localStorage.getItem('dmt_session');
-  if(existing){
-    try {
-      const parsed = JSON.parse(existing);
-      if(parsed.expires > Date.now() && parsed.userId === session.user.id) return;
-    } catch(e){}
-  }
-
   const user = session.user;
   const displayName = user.user_metadata?.full_name
     || user.user_metadata?.name
@@ -3235,11 +3202,9 @@ function _applyGoogleSession(session){
     userId:      user.id
   };
   localStorage.setItem('dmt_session', JSON.stringify(sess));
-
-  if(window.location.search.includes('code=')){
+  if(window.location.search.includes('code=') || window.location.hash.includes('access_token')){
     history.replaceState(null,'',window.location.pathname);
   }
-
   startSession(sess);
 }
 
