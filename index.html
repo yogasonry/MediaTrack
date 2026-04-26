@@ -2430,7 +2430,7 @@ const DMT_CONFIG = {
     appName:     'MediaTrack',
     appFullName: 'Media Transfer Tracking',
     clientName:  'MediaTrack',
-    domain:      'vdmt.space',
+    domain:      'mediatrack.app',
     favicon:     '/icon-192.svg',
     accent:      '#00b4d8',
     accentBg:    '#e0f7fa',
@@ -2442,17 +2442,14 @@ const DMT_CONFIG = {
   },
 
   /* -- 2. BACKEND --------------------------------------------- */
-  // -- SUPABASE (replaces GAS) --
-  /* -- WORKSPACE (populated at runtime after login) -- */
   workspaceId:   null,
-
   supabaseUrl:  'https://snycbhoevaxfrhiylycl.supabase.co',
   supabaseKey:  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNueWNiaG9ldmF4ZnJoaXlseWNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MTI5MDMsImV4cCI6MjA5MjE4ODkwM30.qN-lPQJ9q_DqgwYcosSpTu0Q4zfssYjpNLfkIpYPD5c',
-  gasUrl: '', // deprecated -- now using Supabase
+  gasUrl: '',
 
   /* -- 3. DEFAULT EVENT --------------------------------------- */
   defaultEvent: {
-    name:     'My Project',
+    name:     '',
     location: '',
     date:     '',
     type:     '',
@@ -2463,11 +2460,7 @@ const DMT_CONFIG = {
 
   /* -- 5. CREW ------------------------------------------------ */
   crew: [],
-
-  // Role yang tampil di public view & crew grid
-  crewFocus: ['DOP / Camera Operator', 'Photographer', 'Drone Pilot', 'Sound Engineer'],
-
-  // Warna per role
+  crewFocus: [],
   roleColors: {
     'Director':              '#e84f8c',
     'DOP / Camera Operator': '#0ca97a',
@@ -2481,13 +2474,11 @@ const DMT_CONFIG = {
   },
 
   /* -- 6. STAGES & SCHEDULE ----------------------------------- */
-  slotLabel: 'shot_desc',
-
+  slotLabel: 'artist',
   stages: {},
 
   /* -- 7. MEDIA TYPES ----------------------------------------- */
   mediaTypes: ['Video', 'Photo', 'Audio', 'RAW/Proxy', 'BTS', 'Mixed', 'Script/Doc'],
-
   mediaMap: {
     'DOP / Camera Operator': 'Video',
     'Photographer':          'Photo',
@@ -2499,21 +2490,11 @@ const DMT_CONFIG = {
   /* -- 8. DEFAULT DEVICES ------------------------------------- */
   defaultDevices: [],
 
-  /* -- 9. AUTH -- MULTI USER ----------------------------------- */
-  // Tambah / hapus user di sini sesuai kebutuhan
-  users: [], // Gunakan Supabase Auth - jangan simpan password di sini
-
-  // Guest users (read-only, client-side only)
-  guestUsers: {
-    'guest': { password: 'guest', displayName: 'Guest' },
-  },
-
-  dangerPin: '',  // Set PIN kamu di sini, contoh: '9182'
-  enableGuestAccess: true,
-  guestUsers: {
-    'guest':  { password: 'guest123', displayName: 'Guest User',   role: 'data_manager' },
-    'viewer': { password: 'view456',  displayName: 'Guest Viewer', role: 'data_manager' },
-  },
+  /* -- 9. AUTH ------------------------------------------------ */
+  users: [],
+  guestUsers: {},
+  dangerPin: '',
+  enableGuestAccess: false,
 
   /* -- 10. LOCALE --------------------------------------------- */
   timezone: 'Asia/Makassar',
@@ -3841,7 +3822,7 @@ function applyEvent(ev){
   const schedLabel=document.getElementById('sched-event-label');
   if(schedLabel)schedLabel.textContent=`Lineup${ev.name?' \u00b7 '+ev.name:''}`;
   const b=DMT_CONFIG.brand;
-  document.title=ev.name?`${b.appName} -- ${ev.name}`:b.appName;
+  document.title=ev.name?`${b.appName} · ${ev.name}`:b.appName;
   const dsub=document.getElementById('dashboard-sub');
   if(dsub)dsub.textContent=`File transfer summary \u00b7 ${fullLabel}`;
   // Refresh day dropdown in form
