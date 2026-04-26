@@ -440,7 +440,7 @@ textarea{resize:vertical;min-height:72px;line-height:1.6}
 /* PIN modal */
 .pin-modal-backdrop{position:fixed;inset:0;background:rgba(15,21,35,.5);z-index:600;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
 .pin-modal-backdrop.hidden{display:none}
-.pin-modal-box{background:var(--surface);border-radius:var(--r-lg);border:1px solid var(--border);box-shadow:var(--shadow-lg);width:100%;max-width:340px;margin:24px;overflow:hidden}
+.pin-modal-box{background:var(--surface);border-radius:var(--r-lg);border:1px solid var(--border);box-shadow:var(--shadow-lg);width:100%;max-width:340px;margin:24px auto;overflow:hidden}
 .pin-modal-head{padding:16px 20px;border-bottom:1px solid var(--border);background:var(--red-bg);display:flex;align-items:center;gap:10px}
 .pin-modal-title{font-size:13px;font-weight:800;color:var(--red);flex:1}
 .pin-modal-body{padding:24px 20px;display:flex;flex-direction:column;gap:14px}
@@ -459,7 +459,7 @@ textarea{resize:vertical;min-height:72px;line-height:1.6}
 /* CONFIRM RESET MODAL */
 .confirm-modal-backdrop{position:fixed;inset:0;background:rgba(15,21,35,.5);z-index:600;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
 .confirm-modal-backdrop.hidden{display:none}
-.confirm-modal-box{background:var(--surface);border-radius:var(--r-lg);border:1.5px solid rgba(232,56,79,.3);width:100%;max-width:400px;box-shadow:var(--shadow-lg);overflow:hidden}
+.confirm-modal-box{background:var(--surface);border-radius:var(--r-lg);border:1.5px solid rgba(232,56,79,.3);width:100%;max-width:400px;margin:24px auto;box-shadow:var(--shadow-lg);overflow:hidden}
 .confirm-modal-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:#fff5f6}
 .confirm-modal-icon{width:32px;height:32px;border-radius:50%;background:var(--red-bg);display:grid;place-items:center;flex-shrink:0}
 .confirm-modal-body{padding:20px}
@@ -499,7 +499,7 @@ tbody tr:hover .row-actions{opacity:1}
 .btn-del:hover{background:var(--red);color:#fff}
 
 /* EDIT MODAL */
-.edit-modal-backdrop{position:fixed;inset:0;background:rgba(15,21,35,.45);z-index:500;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.edit-modal-backdrop{position:fixed;inset:0;background:rgba(15,21,35,.45);z-index:600;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
 .edit-modal-backdrop.hidden{display:none}
 .edit-modal-box{background:var(--surface);border-radius:var(--r-lg);border:1px solid var(--border);width:100%;max-width:520px;box-shadow:var(--shadow-lg);overflow:hidden}
 .edit-modal-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--card2)}
@@ -558,7 +558,7 @@ tbody tr:hover .row-actions{opacity:1}
 .sched-full-artist{font-size:13px;font-weight:600;padding:14px 20px;flex:1}
 
 /* EVENT MODAL */
-.modal-backdrop{position:fixed;inset:0;background:rgba(15,21,35,.4);z-index:500;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.modal-backdrop{position:fixed;inset:0;background:rgba(15,21,35,.4);z-index:600;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
 .modal-backdrop.hidden{display:none}
 .modal-box{background:var(--surface);border-radius:var(--r-lg);border:1px solid var(--border);box-shadow:var(--shadow-lg);width:100%;max-width:480px;margin:24px;overflow:hidden}
 .modal-head{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
@@ -722,12 +722,75 @@ tbody tr:hover .row-actions{opacity:1}
   /* Section label */
   .section-label{font-size:10px}
 
-  /* Modal full-screen-ish */
-  .modal-box{margin:16px;max-width:calc(100vw - 32px)}
+  /* ── MODAL: bottom sheet di mobile ── */
+  /* General modal → bottom sheet */
+  .modal-backdrop{align-items:flex-end}
+  .modal-box{
+    margin:0;max-width:100%;width:100%;
+    border-radius:var(--r-lg) var(--r-lg) 0 0;
+    border-bottom:none;
+    max-height:92vh;overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    padding-bottom:env(safe-area-inset-bottom,0px);
+    animation:slideUpSheet .22s cubic-bezier(.4,0,.2,1);
+  }
+  .modal-foot{gap:10px;padding:12px 16px}
+  .modal-foot .btn-ghost{flex:1;text-align:center}
+  .modal-foot .btn-primary{flex:2;display:flex;align-items:center;justify-content:center;padding:12px 20px;font-size:13px}
 
-  /* Toast: full bottom */
-  .toast{left:16px;right:16px;bottom:72px;justify-content:center}
-  /* Public view: no bottom nav, toast lebih rendah */
+  /* Edit modal → bottom sheet */
+  .edit-modal-backdrop{align-items:flex-end}
+  .edit-modal-box{
+    margin:0;width:100%;max-width:100%;
+    border-radius:var(--r-lg) var(--r-lg) 0 0;
+    border-bottom:none;
+    max-height:92vh;overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    padding-bottom:env(safe-area-inset-bottom,0px);
+    animation:slideUpSheet .22s cubic-bezier(.4,0,.2,1);
+  }
+  .edit-modal-body{grid-template-columns:1fr}
+  .edit-modal-foot{padding:12px 16px;gap:10px;display:flex}
+  .edit-modal-foot .btn-ghost{flex:1;text-align:center;padding:12px}
+  .edit-modal-foot .btn-primary{flex:2;display:flex;align-items:center;justify-content:center;padding:12px 20px;font-size:13px}
+
+  /* Confirm modal → bottom sheet */
+  .confirm-modal-backdrop{align-items:flex-end}
+  .confirm-modal-box{
+    margin:0;width:100%;max-width:100%;
+    border-radius:var(--r-lg) var(--r-lg) 0 0;
+    border-bottom:none;
+    overflow:hidden;
+    padding-bottom:env(safe-area-inset-bottom,0px);
+    animation:slideUpSheet .22s cubic-bezier(.4,0,.2,1);
+  }
+  .confirm-modal-foot{gap:10px;display:flex}
+  .confirm-modal-foot .btn-ghost{flex:1;text-align:center;padding:12px}
+  .confirm-modal-foot .btn-danger{flex:2;display:flex;align-items:center;justify-content:center;padding:12px 20px;font-size:13px}
+
+  /* PIN modal → bottom sheet */
+  .pin-modal-backdrop{align-items:flex-end}
+  .pin-modal-box{
+    margin:0;width:100%;max-width:100%;
+    border-radius:var(--r-lg) var(--r-lg) 0 0;
+    border-bottom:none;
+    overflow:hidden;
+    padding-bottom:env(safe-area-inset-bottom,0px);
+    animation:slideUpSheet .22s cubic-bezier(.4,0,.2,1);
+  }
+  .pin-key{height:54px;font-size:18px}
+  .pin-keypad{gap:10px;padding:0 4px}
+  .pin-dots{gap:14px;margin-bottom:8px}
+  .pin-dot{width:16px;height:16px}
+  .pin-modal-body{padding:20px 16px}
+
+  /* Row actions: always visible on mobile (no hover event) */
+  .row-actions{opacity:1}
+
+  /* Toast: di atas bottom nav, full width, wrappable */
+  .toast{left:16px;right:16px;bottom:76px;justify-content:center;white-space:normal;text-align:center;border-radius:14px;transform:translateX(0) translateY(20px)}
+  .toast.show{transform:translateX(0) translateY(0)}
+  /* Public view: no bottom nav */
   .pub-view .toast{bottom:24px}
 }
 
@@ -755,13 +818,49 @@ tbody tr:hover .row-actions{opacity:1}
 
 /* Crew settings row */
 .crew-settings-row{
-  display:grid;grid-template-columns:1fr 140px 140px 32px;gap:6px;align-items:center;
+  display:grid;grid-template-columns:1fr 120px 140px 32px;gap:6px;align-items:center;
 }
-@media(max-width:700px){.crew-settings-row{grid-template-columns:1fr 100px 32px}}
+.crew-settings-col-header{
+  display:grid;grid-template-columns:1fr 120px 120px 32px;gap:6px;
+  padding:0 4px 6px;font-size:10px;font-weight:700;color:var(--dim);
+  font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;
+  border-bottom:1px solid var(--border);margin-bottom:8px;
+}
+@media(max-width:700px){
+  .crew-settings-row{grid-template-columns:1fr 80px 28px}
+  .crew-settings-col-header{grid-template-columns:1fr 80px 28px}
+}
 
 /* Slot settings row */
 .slot-settings-row{
-  display:grid;grid-template-columns:110px 1fr 28px;gap:6px;align-items:center;
+  background:var(--bg);border-radius:var(--r-sm);border:1px solid var(--border);
+  overflow:hidden;display:flex;align-items:center;
+}
+.slot-settings-row-mobile{
+  display:flex;align-items:center;
+}
+.slot-settings-row-mobile .slot-time-row{
+  display:flex;align-items:center;flex-shrink:0;
+}
+.slot-settings-row-mobile .slot-time-row select{
+  font-family:var(--mono);font-size:12px;background:transparent;border:none;
+  outline:none;padding:6px 2px 6px 8px;color:var(--ink);
+  cursor:pointer;-webkit-appearance:none;appearance:none;width:62px;
+}
+.slot-settings-row-mobile .slot-time-sep{
+  font-family:var(--mono);font-size:11px;color:var(--dim);padding:0 2px;flex-shrink:0;
+}
+.slot-settings-row-mobile .slot-artist-row{
+  display:flex;align-items:center;flex:1;min-width:0;border-left:1px solid var(--border2);
+}
+.slot-settings-row-mobile .slot-artist-row input{
+  flex:1;font-size:13px;background:transparent;border:none;
+  outline:none;padding:6px 10px;min-width:0;
+}
+.slot-settings-row-mobile .slot-del-btn{
+  width:32px;height:36px;border-radius:0;background:none;border:none;
+  border-left:1px solid var(--border2);cursor:pointer;color:var(--dim);
+  display:grid;place-items:center;flex-shrink:0;transition:all .12s;
 }
 
 /* Stage name header in sched settings */
@@ -782,7 +881,51 @@ tbody tr:hover .row-actions{opacity:1}
   .stab{font-size:12px;padding:8px 12px}
   #stabpanel-general > div{grid-template-columns:1fr !important;max-width:100% !important}
   #stabpanel-crew > div, #stabpanel-schedule > div{max-width:100% !important}
+
+  /* Crew: kolom header hilang Phone, sesuaikan grid */
+  .crew-settings-col-header{grid-template-columns:1fr 90px 28px}
+  .crew-settings-col-header span:nth-child(3){display:none} /* sembunyikan Phone header */
   .crew-settings-row{grid-template-columns:1fr 90px 28px}
+
+  /* Crew: unlocked row phone input disembunyikan, cukup name+role */
+  .crew-row-phone-input{display:none !important}
+
+  /* Settings panel header: title kiri, buttons kanan → wrap ke bawah di mobile */
+  #stabpanel-crew .form-shell > div:first-child,
+  #stabpanel-schedule .form-shell > div:first-child{
+    flex-direction:column;align-items:stretch !important;gap:12px !important
+  }
+  .settings-action-btns{width:100%}
+  .settings-sec-btn{flex:1;justify-content:center !important;padding:11px 12px !important;font-size:13px !important}
+  .settings-save-btn{flex:1;justify-content:center;padding:11px 12px !important;font-size:13px !important;margin:0 !important}
+
+  /* Schedule scene tabs: scroll horizontal */
+  #sched-settings-tabs{
+    overflow-x:auto;-webkit-overflow-scrolling:touch;
+    flex-wrap:nowrap !important;padding-bottom:8px;
+    /* hide scrollbar */
+    scrollbar-width:none;
+  }
+  #sched-settings-tabs::-webkit-scrollbar{display:none}
+
+  /* Slot row: satu baris, perbesar tap target di mobile */
+  .slot-settings-row-mobile .slot-time-row select{
+    font-size:14px !important;padding:10px 2px 10px 8px;width:58px;
+  }
+  .slot-settings-row-mobile .slot-artist-row input{
+    font-size:14px !important;padding:10px 8px;
+  }
+  .slot-settings-row-mobile .slot-del-btn{
+    width:40px;height:44px;
+  }
+
+  /* Scene header: stack delete button */
+  .scene-header-inner{flex-wrap:wrap;gap:8px}
+  .scene-header-inner input{min-width:0;flex:1}
+  .scene-delete-btn{align-self:stretch;padding:8px 12px !important;font-size:12px !important}
+
+  /* Slot column headers: sembunyikan di mobile (diganti label inline) */
+  .slot-col-headers{display:none !important}
 }
 
 
@@ -1471,12 +1614,12 @@ tbody tr:hover .row-actions{opacity:1}
                   </h2>
                   <div style="font-size:11px;color:var(--dim);font-family:var(--mono)" id="crew-settings-source"></div>
                 </div>
-                <div style="display:flex;gap:8px">
-                  <button onclick="addCrewRow()" style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--r-sm);background:var(--surface);border:1.5px solid var(--border2);color:var(--ink2);cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:700;transition:all .12s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--ink2)'">
+                <div class="settings-action-btns" style="display:flex;gap:8px">
+                  <button onclick="addCrewRow()" class="settings-sec-btn" style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--r-sm);background:var(--surface);border:1.5px solid var(--border2);color:var(--ink2);cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:700;transition:all .12s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--ink2)'">
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     Add Member
                   </button>
-                  <button class="submit-btn" style="padding:8px 16px;margin:0;font-size:12px" onclick="saveCrew()">
+                  <button class="submit-btn settings-save-btn" style="padding:8px 16px;margin:0;font-size:12px" onclick="saveCrew()">
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                     Save
                   </button>
@@ -1484,8 +1627,8 @@ tbody tr:hover .row-actions{opacity:1}
               </div>
 
               <!-- Column headers -->
-              <div style="display:grid;grid-template-columns:1fr 140px 120px 32px;gap:6px;padding:0 4px 6px;font-size:10px;font-weight:700;color:var(--dim);font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border);margin-bottom:8px">
-                <span>Name</span><span>Role</span><span>Phone</span><span></span>
+              <div class="crew-settings-col-header" id="crew-col-header">
+                <span>Name</span><span>Role</span><span class="crew-col-phone">Phone</span><span></span>
               </div>
 
               <!-- Crew rows -->
@@ -1523,12 +1666,12 @@ tbody tr:hover .row-actions{opacity:1}
                   </h2>
                   <div style="font-size:11px;color:var(--dim);font-family:var(--mono)" id="sched-settings-source"></div>
                 </div>
-                <div style="display:flex;gap:8px">
-                  <button onclick="addStage()" style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--r-sm);background:var(--surface);border:1.5px solid var(--border2);color:var(--ink2);cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:700;transition:all .12s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--ink2)'">
+                <div class="settings-action-btns" style="display:flex;gap:8px">
+                  <button onclick="addStage()" class="settings-sec-btn" style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--r-sm);background:var(--surface);border:1.5px solid var(--border2);color:var(--ink2);cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:700;transition:all .12s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--ink2)'">
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     Add Scene
                   </button>
-                  <button class="submit-btn" style="padding:8px 16px;margin:0;font-size:12px" onclick="saveScheduleSettings()">
+                  <button class="submit-btn settings-save-btn" style="padding:8px 16px;margin:0;font-size:12px" onclick="saveScheduleSettings()">
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                     Save
                   </button>
@@ -6502,11 +6645,12 @@ function renderCrewSettings() {
       style="background:var(--bg);border-radius:var(--r-sm);padding:6px 8px;border:1.5px solid var(--accent);display:grid;grid-template-columns:1fr auto auto auto;gap:6px;align-items:center">
       <input type="text" value="${x(c.name)}" id="cr-name-${i}" placeholder="Crew name"
         style="font-size:13px;font-weight:600;background:transparent;border:none;outline:none;color:var(--ink);font-family:var(--sans);width:100%;min-width:0">
-      <select id="cr-role-${i}" style="font-size:11px;background:var(--surface);border:1px solid var(--border2);border-radius:5px;padding:4px 6px;color:var(--ink2);font-family:var(--sans)">
+      <select id="cr-role-${i}" style="font-size:11px;background:var(--surface);border:1px solid var(--border2);border-radius:5px;padding:4px 6px;color:var(--ink2);font-family:var(--sans);width:100%;min-width:0;max-width:80px;overflow:hidden;text-overflow:ellipsis">
         <option value="">-- Role --</option>
         ${CREW_ROLES.map(r => `<option value="${x(r)}"${c.role===r?' selected':''}>${x(r)}</option>`).join('')}
       </select>
       <input type="text" value="${x(c.phone||'')}" id="cr-phone-${i}" placeholder="Phone"
+        class="crew-row-phone-input"
         style="font-size:11px;font-family:var(--mono);background:transparent;border:1px solid var(--border2);border-radius:5px;padding:4px 8px;color:var(--ink2);width:90px"
         onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'">
       <button onclick="_crewLock(${i})" title="Kunci / Lock"
@@ -6771,42 +6915,42 @@ function renderScheduleSettings() {
         tEnd = parts[1]?.trim() || '';
       }
       return `
-      <div class="slot-settings-row" id="slot-${i}-${j}" style="background:var(--bg);border-radius:var(--r-sm);border:1px solid var(--border);display:grid;grid-template-columns:auto auto auto 1fr 26px;align-items:center">
-        <select id="st-tstart-${i}-${j}" onchange="_updateTimeLabel(${i},${j})"
-          style="font-family:var(--mono);font-size:12px;background:transparent;border:none;outline:none;padding:6px 4px 6px 8px;color:var(--ink);cursor:pointer;-webkit-appearance:none;appearance:none;width:70px">
-          <option value="">--:--</option>
-          ${_timeOptions(tStart)}
-        </select>
-        <span style="font-family:var(--mono);font-size:11px;color:var(--dim);padding:0 2px">→</span>
-        <select id="st-tend-${i}-${j}" onchange="_updateTimeLabel(${i},${j})"
-          style="font-family:var(--mono);font-size:12px;background:transparent;border:none;outline:none;padding:6px 4px 6px 2px;color:var(--ink);cursor:pointer;-webkit-appearance:none;appearance:none;width:70px">
-          <option value="">--:--</option>
-          ${_timeOptions(tEnd)}
-        </select>
-        <input type="text" value="${x(s[slotLabel]||s.artist||'')}" id="st-artist-${i}-${j}" placeholder="${x(slotLabel.charAt(0).toUpperCase()+slotLabel.slice(1))}"
-          style="font-size:13px;background:transparent;border:none;border-left:1px solid var(--border2);outline:none;padding:6px 10px;width:100%"
-          onfocus="this.closest('.slot-settings-row').style.borderColor='var(--accent)'"
-          onblur="this.closest('.slot-settings-row').style.borderColor='var(--border)'">
-        <button onclick="removeSlot('${x(stage).replace(/'/g,"\\'")}',${j})"
-          style="width:26px;height:100%;border-radius:0 5px 5px 0;background:none;border:none;border-left:1px solid var(--border2);cursor:pointer;color:var(--dim);display:grid;place-items:center;flex-shrink:0;transition:all .12s"
-          onmouseover="this.style.background='var(--red-bg)';this.style.color='var(--red)'"
-          onmouseout="this.style.background='none';this.style.color='var(--dim)'">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
+      <div class="slot-settings-row slot-settings-row-mobile" id="slot-${i}-${j}">
+        <div class="slot-time-row">
+          <select id="st-tstart-${i}-${j}" onchange="_updateTimeLabel(${i},${j})">
+            <option value="">--:--</option>
+            ${_timeOptions(tStart)}
+          </select>
+          <span class="slot-time-sep">→</span>
+          <select id="st-tend-${i}-${j}" onchange="_updateTimeLabel(${i},${j})">
+            <option value="">--:--</option>
+            ${_timeOptions(tEnd)}
+          </select>
+        </div>
+        <div class="slot-artist-row">
+          <input type="text" value="${x(s[slotLabel]||s.artist||'')}" id="st-artist-${i}-${j}" placeholder="${x(slotLabel.charAt(0).toUpperCase()+slotLabel.slice(1))}"
+            onfocus="this.closest('.slot-settings-row').style.borderColor='var(--accent)'"
+            onblur="this.closest('.slot-settings-row').style.borderColor='var(--border)'">
+          <button class="slot-del-btn" onclick="removeSlot('${x(stage).replace(/'/g,"\\'")}',${j})"
+            onmouseover="this.style.background='var(--red-bg)';this.style.color='var(--red)'"
+            onmouseout="this.style.background='none';this.style.color='var(--dim)'">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
       </div>`;
     }).join('');
 
     return `<div id="sspanel-${i}" style="display:block">
 
       <!-- Scene header: name + delete -->
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:10px 12px;background:var(--bg);border-radius:var(--r-sm);border:1px solid var(--border)">
+      <div class="scene-header-inner" style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:10px 12px;background:var(--bg);border-radius:var(--r-sm);border:1px solid var(--border)">
         <span style="width:10px;height:10px;border-radius:50%;background:${clr};flex-shrink:0"></span>
         <input type="text" value="${x(stage)}" id="sname-${i}" placeholder="Scene name"
-          style="flex:1;font-size:14px;font-weight:700;background:transparent;border:none;outline:none;color:var(--ink);font-family:var(--sans)"
+          style="flex:1;font-size:14px;font-weight:700;background:transparent;border:none;outline:none;color:var(--ink);font-family:var(--sans);min-width:0"
           onfocus="this.parentElement.style.borderColor='var(--accent)'"
           onblur="this.parentElement.style.borderColor='var(--border)'">
-        <button onclick="deleteStage('${x(stage).replace(/'/g,"\\'")}')"
-          style="display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:var(--r-sm);background:none;border:1px solid rgba(232,56,79,.25);color:var(--red);cursor:pointer;font-size:11px;font-family:var(--mono);font-weight:600;transition:all .12s;flex-shrink:0"
+        <button class="scene-delete-btn" onclick="deleteStage('${x(stage).replace(/'/g,"\\'")}')"
+          style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:var(--r-sm);background:none;border:1px solid rgba(232,56,79,.25);color:var(--red);cursor:pointer;font-size:11px;font-family:var(--mono);font-weight:600;transition:all .12s;flex-shrink:0;white-space:nowrap"
           onmouseover="this.style.background='var(--red-bg)'"
           onmouseout="this.style.background='none'">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
@@ -6815,7 +6959,7 @@ function renderScheduleSettings() {
       </div>
 
       <!-- Slot column headers -->
-      <div style="display:grid;grid-template-columns:auto auto auto 1fr 26px;gap:0;padding:4px 8px;font-size:10px;font-weight:700;color:var(--dim);font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">
+      <div class="slot-col-headers" style="display:grid;grid-template-columns:auto auto auto 1fr 26px;gap:0;padding:4px 8px;font-size:10px;font-weight:700;color:var(--dim);font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">
         <span style="width:70px">START</span><span style="width:16px"></span><span style="width:70px">END</span><span>${x(slotLabel.toUpperCase())}</span><span></span>
       </div>
 
