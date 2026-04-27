@@ -4791,13 +4791,15 @@ function renderEsdList(){
       ${isActive?`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`:''}
     </div>`;
   }).join('');
-  // Bind via event delegation on the list container (avoids inline string issues)
+  // Bind via event delegation — stopPropagation prevents outside-click listener
+  // from firing on the same tick and interfering with setActiveEvent
   list.onclick=function(e){
     const item=e.target.closest('[data-evid]');
     if(!item)return;
+    e.stopPropagation(); // prevent document click from closing before setActiveEvent runs
     const evid=item.getAttribute('data-evid');
-    closeEventSwitcher();
-    setActiveEvent(evid);
+    setActiveEvent(evid);  // switch event first
+    closeEventSwitcher();  // then close (prevents flicker on re-render)
   };
 }
 
@@ -6609,7 +6611,7 @@ function printLog(src){
 </div>
 
 <!-- ESD backdrop (mobile only) -->
-<div id="esd-backdrop" style="display:none;position:fixed;inset:0;background:rgba(15,21,35,.45);z-index:999;backdrop-filter:blur(2px)" onclick="closeEventSwitcher()"></div>
+<div id="esd-backdrop" style="display:none;position:fixed;inset:0;background:rgba(15,21,35,.45);z-index:999;backdrop-filter:blur(2px)" onclick="event.stopPropagation();closeEventSwitcher()"></div>
 
 <!-- EVENT SWITCHER DROPDOWN -->
 <div class="event-switcher-dropdown" id="event-switcher-dropdown">
