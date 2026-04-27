@@ -1777,14 +1777,14 @@ tbody tr:hover .row-actions{opacity:1}
 
         <!-- Tab: CAMERAS -->
         <div class="stab-panel" id="stabpanel-cameras">
-          <div style="max-width:560px">
+          <div style="max-width:620px">
             <div class="form-shell">
               <h2>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
-                Camera / Device Sources
+                Camera / Device Source
               </h2>
               <p style="font-size:12px;color:var(--dim);font-family:var(--mono);margin-bottom:14px;line-height:1.6">
-                Define cameras and devices used at this event. These will appear as dropdown options in the input form.
+                Define cameras and devices used at this event. These will appear as dropdown options in the transfer input form.
               </p>
 
               <!-- Locked view -->
@@ -1798,14 +1798,43 @@ tbody tr:hover .row-actions{opacity:1}
 
               <!-- Edit view -->
               <div id="camera-edit-view" style="display:none">
+
+                <!-- Brand picker -->
+                <div style="margin-bottom:14px">
+                  <div style="font-size:10px;font-weight:700;color:var(--dim);font-family:var(--mono);letter-spacing:.07em;text-transform:uppercase;margin-bottom:8px">Quick Add by Brand</div>
+                  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px" id="cam-brand-chips">
+                    ${['RED','ARRI','SONY','PANASONIC','LUMIX','CANON','NIKON','FUJIFILM','BLACKMAGIC','DJI','GOPRO','INSTA360','FPV'].map(b=>`
+                      <button type="button" onclick="_camBrandClick('${b}')" id="cam-brand-${b}"
+                        data-active="0"
+                        style="padding:5px 12px;border-radius:20px;border:1.5px solid var(--border2);background:var(--bg);color:var(--ink2);cursor:pointer;font-size:11px;font-weight:700;font-family:var(--mono);transition:all .12s"
+                        onmouseover="if(this.dataset.active!=='1'){this.style.borderColor='var(--accent)';this.style.color='var(--accent)';}"
+                        onmouseout="if(this.dataset.active!=='1'){this.style.borderColor='var(--border2)';this.style.color='var(--ink2)';}">
+                        ${b}
+                      </button>`).join('')}
+                  </div>
+                  <!-- Model suggestions -->
+                  <div id="cam-model-suggestions" style="display:none;background:var(--bg);border:1.5px solid var(--accent);border-radius:var(--r-sm);padding:10px 12px;margin-bottom:10px">
+                    <div style="font-size:10px;font-weight:700;color:var(--accent);font-family:var(--mono);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
+                      <span id="cam-model-brand-label">SELECT MODEL</span>
+                      <button onclick="document.getElementById('cam-model-suggestions').style.display='none';_camResetBrands()" style="background:none;border:none;cursor:pointer;color:var(--dim);font-size:10px;font-family:var(--mono)">✕ close</button>
+                    </div>
+                    <div id="cam-model-list" style="display:flex;flex-wrap:wrap;gap:5px"></div>
+                  </div>
+                </div>
+
+                <!-- Current camera list -->
+                <div style="font-size:10px;font-weight:700;color:var(--dim);font-family:var(--mono);letter-spacing:.07em;text-transform:uppercase;margin-bottom:8px">Your Camera / Device List</div>
                 <div id="camera-list-edit" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px"></div>
-                <button class="add-device-btn" onclick="addCamera()" style="margin-bottom:14px">+ Add camera / device</button>
+
+                <!-- Manual add -->
+                <button class="add-device-btn" onclick="addCamera()" style="margin-bottom:14px">+ Add manually</button>
+
                 <div style="display:flex;gap:8px">
-                  <button onclick="saveCameras()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 14px;border-radius:var(--r-sm);background:var(--grad);border:none;cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:700;color:#fff;box-shadow:0 4px 14px var(--grad-shadow);transition:opacity .15s" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+                  <button onclick="saveCameras()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 14px;border-radius:var(--r-sm);background:var(--grad);border:none;cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:700;color:#fff;box-shadow:0 4px 14px var(--grad-shadow);white-space:nowrap;transition:opacity .15s" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                     Save & Lock
                   </button>
-                  <button onclick="cancelEditCameras()" style="padding:10px 16px;border-radius:var(--r-sm);background:none;border:1.5px solid var(--border2);color:var(--ink2);cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:600;transition:all .12s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--ink2)'">
+                  <button onclick="cancelEditCameras()" style="padding:10px 16px;border-radius:var(--r-sm);background:none;border:1.5px solid var(--border2);color:var(--ink2);cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:600;white-space:nowrap;transition:all .12s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--ink2)'">
                     Cancel
                   </button>
                 </div>
@@ -5384,6 +5413,9 @@ function renderCameraSettings(){
 function unlockCameras(){
   document.getElementById('camera-locked-view').style.display = 'none';
   document.getElementById('camera-edit-view').style.display = 'block';
+  _camResetBrands();
+  const sug = document.getElementById('cam-model-suggestions');
+  if(sug) sug.style.display = 'none';
   renderCameraSettings();
 }
 function cancelEditCameras(){
@@ -5433,6 +5465,148 @@ async function saveCameras(){
   }
 }
 
+
+/* == CAMERA BRAND / MODEL DATABASE == */
+const CAMERA_DB = {
+  'RED': [
+    'RED V-RAPTOR 8K','RED KOMODO 6K','RED KOMODO-X 6K','RED MONSTRO 8K VV',
+    'RED GEMINI 5K','RED HELIUM 8K','RED RAVEN 4.5K','RED EPIC-W 8K',
+    'RED RANGER MONSTRO 8K','RED V-RAPTOR XL 8K'
+  ],
+  'ARRI': [
+    'ARRI ALEXA 35','ARRI ALEXA Mini LF','ARRI ALEXA Mini','ARRI ALEXA LF',
+    'ARRI AMIRA','ARRI ALEXA 65','ARRI ALEXA SXT','ARRI ALEXA XT Plus',
+    'ARRI ALEXA Classic','ARRI ALEXA Mini LF + Cooke'
+  ],
+  'SONY': [
+    'Sony FX3','Sony FX6','Sony FX9','Sony FX30','Sony A7S III',
+    'Sony A7 IV','Sony A7R V','Sony A7C II','Sony ZV-E1','Sony ZV-E10',
+    'Sony A1','Sony A9 III','Sony VENICE 2','Sony VENICE 1',
+    'Sony PXW-FX9','Sony PXW-Z280','Sony PXW-Z190','Sony PXW-Z150',
+    'Sony HXR-NX800','Sony HDR-CX405'
+  ],
+  'PANASONIC': [
+    'Panasonic AU-EVA1','Panasonic VariCam LT','Panasonic VariCam 35',
+    'Panasonic S5 II','Panasonic S5 IIX','Panasonic S1H','Panasonic S1',
+    'Panasonic GH6','Panasonic GH5 II','Panasonic BGH1',
+    'Panasonic AG-CX350','Panasonic AG-DVX200'
+  ],
+  'LUMIX': [
+    'Lumix S5 II','Lumix S5 IIX','Lumix S1H','Lumix S1','Lumix S1R',
+    'Lumix GH6','Lumix GH5 II','Lumix GH5','Lumix G9 II','Lumix G7'
+  ],
+  'CANON': [
+    'Canon EOS R5 C','Canon EOS R5','Canon EOS R6 Mark II','Canon EOS R3',
+    'Canon EOS R7','Canon EOS C70','Canon EOS C300 Mark III',
+    'Canon EOS C500 Mark II','Canon EOS C200','Canon EOS C100 Mark II',
+    'Canon EOS 1D X Mark III','Canon EOS 5D Mark IV','Canon XA75','Canon XA60',
+    'Canon XF605','Canon XF405'
+  ],
+  'NIKON': [
+    'Nikon Z9','Nikon Z8','Nikon Z6 III','Nikon Z6 II','Nikon Z7 II',
+    'Nikon Z30','Nikon Z50 II','Nikon ZFC','Nikon D850','Nikon D780'
+  ],
+  'FUJIFILM': [
+    'Fujifilm X-H2S','Fujifilm X-H2','Fujifilm X-T5','Fujifilm X-T4',
+    'Fujifilm X-S20','Fujifilm X100VI','Fujifilm GFX100 II','Fujifilm GFX100S II',
+    'Fujifilm X-T30 II','Fujifilm X-E4'
+  ],
+  'BLACKMAGIC': [
+    'Blackmagic URSA Mini Pro 12K','Blackmagic URSA Mini Pro 4.6K G2',
+    'Blackmagic Pocket Cinema 6K G2','Blackmagic Pocket Cinema 6K Pro',
+    'Blackmagic Pocket Cinema 4K','Blackmagic Cinema Camera 6K',
+    'Blackmagic Micro Cinema Camera','Blackmagic Studio Camera 6K Pro',
+    'Blackmagic Studio Camera 4K Plus','Blackmagic Studio Camera 4K Pro G2'
+  ],
+  'DJI': [
+    'DJI Mavic 3 Pro','DJI Mavic 3 Classic','DJI Mavic 3 Cine Premium',
+    'DJI Air 3','DJI Mini 4 Pro','DJI Mini 3 Pro','DJI Avata 2',
+    'DJI Inspire 3','DJI Ronin 4D 8K','DJI Ronin 4D 6K',
+    'DJI RS 3 Mini','DJI O3 Air Unit','DJI Pocket 3','DJI Osmo Pocket 3'
+  ],
+  'GOPRO': [
+    'GoPro HERO13 Black','GoPro HERO12 Black','GoPro HERO11 Black Mini',
+    'GoPro HERO10 Black','GoPro MAX 360','GoPro HERO11 Black',
+    'GoPro Volta','GoPro HERO9 Black'
+  ],
+  'INSTA360': [
+    'Insta360 X4','Insta360 X3','Insta360 ONE RS 1-Inch 360',
+    'Insta360 ONE RS Twin','Insta360 GO 3','Insta360 GO 3S',
+    'Insta360 Flow','Insta360 Link 2','Insta360 Ace Pro'
+  ],
+  'FPV': [
+    'DJI Avata 2 FPV','DJI O3 Air Unit FPV','Caddx Polar FPV',
+    'GoPro HERO11 Black Mini (FPV)','RunCam Link Phoenix','Walksnail Avatar Kit',
+    'DJI FPV Combo','Insta360 SMO 4K FPV','Runcam Thumb Pro'
+  ],
+};
+
+function _camBrandClick(brand){
+  // Toggle brand chip active state
+  const allBtns = document.querySelectorAll('[id^="cam-brand-"]');
+  allBtns.forEach(b=>{
+    b.dataset.active='0';
+    b.style.background='var(--bg)';
+    b.style.borderColor='var(--border2)';
+    b.style.color='var(--ink2)';
+  });
+  const btn = document.getElementById('cam-brand-'+brand);
+  if(btn){
+    btn.dataset.active='1';
+    btn.style.background='var(--accent-bg)';
+    btn.style.borderColor='var(--accent)';
+    btn.style.color='var(--accent)';
+  }
+  const models = CAMERA_DB[brand] || [];
+  const suggestEl = document.getElementById('cam-model-suggestions');
+  const labelEl = document.getElementById('cam-model-brand-label');
+  const listEl = document.getElementById('cam-model-list');
+  if(!suggestEl||!listEl) return;
+  labelEl.textContent = brand + ' — click to add';
+  const existing = getCameras();
+  listEl.innerHTML = models.map(m=>{
+    const added = existing.includes(m);
+    return `<button type="button" onclick="_camModelAdd('${m.replace(/'/g,"\\'")}')" id="cam-model-btn-${m.replace(/[^a-z0-9]/gi,'_')}"
+      style="padding:5px 10px;border-radius:16px;border:1.5px solid ${added?'var(--green)':'var(--border2)'};background:${added?'rgba(10,200,120,.08)':'var(--bg)'};color:${added?'var(--green)':'var(--ink2)'};cursor:pointer;font-size:11px;font-family:var(--mono);transition:all .12s;white-space:nowrap"
+      onmouseover="if(!this.dataset.added||this.dataset.added!=='1'){this.style.borderColor='var(--accent)';this.style.color='var(--accent)';}"
+      onmouseout="if(!this.dataset.added||this.dataset.added!=='1'){this.style.borderColor='var(--border2)';this.style.color='var(--ink2)';}"
+      data-added="${added?'1':'0'}">
+      ${added?'✓ ':''} ${x(m)}
+    </button>`;
+  }).join('');
+  suggestEl.style.display = 'block';
+}
+
+function _camModelAdd(model){
+  const cams = getCameras();
+  if(!cams.includes(model)){
+    cams.push(model);
+    setCameras(cams);
+    renderCameraSettings();
+    // Mark button as added
+    const safeid = 'cam-model-btn-'+model.replace(/[^a-z0-9]/gi,'_');
+    const btn = document.getElementById(safeid);
+    if(btn){
+      btn.dataset.added='1';
+      btn.style.borderColor='var(--green)';
+      btn.style.background='rgba(10,200,120,.08)';
+      btn.style.color='var(--green)';
+      btn.innerHTML='✓ '+x(model);
+    }
+    toast(model+' added','ok');
+  } else {
+    toast('Already in list','err');
+  }
+}
+
+function _camResetBrands(){
+  document.querySelectorAll('[id^="cam-brand-"]').forEach(b=>{
+    b.dataset.active='0';
+    b.style.background='var(--bg)';
+    b.style.borderColor='var(--border2)';
+    b.style.color='var(--ink2)';
+  });
+}
 
 function onCameraChange(){
   const sel = document.getElementById('f-camera');
