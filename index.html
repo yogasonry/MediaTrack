@@ -1414,7 +1414,12 @@ tbody tr:hover .row-actions{opacity:1}
                   </div>
                   <div class="field">
                     <label class="field-label">Camera / Device Source</label>
-                    <input type="text" id="f-camera" placeholder="e.g. Sony FX6 A, DJI Mini 4 Pro">
+                    <select id="f-camera" onchange="onCameraChange()">
+                      <option value="">— Select camera —</option>
+                    </select>
+                    <div id="f-camera-manual-wrap" style="display:none;margin-top:6px">
+                      <input type="text" id="f-camera-manual" placeholder="e.g. Sony FX6 A" style="width:100%;background:var(--bg);border:1.5px solid var(--accent);color:var(--ink);padding:9px 12px;border-radius:var(--r-sm);font-family:var(--mono);font-size:12px;outline:none;box-sizing:border-box">
+                    </div>
                   </div>
                   <div class="field">
                     <label class="field-label">Transfer Status</label>
@@ -1555,6 +1560,11 @@ tbody tr:hover .row-actions{opacity:1}
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             Scene List
             <span class="stab-badge" id="stab-schedule-badge"></span>
+          </button>
+          <button class="stab" id="stab-cameras" onclick="switchSettingsTab('cameras')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+            Cameras
+            <span class="stab-badge" id="stab-cameras-badge"></span>
           </button>
           <button class="stab" id="stab-members" onclick="switchSettingsTab('members')" style="display:none">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
@@ -1765,6 +1775,45 @@ tbody tr:hover .row-actions{opacity:1}
       </div>
 
 
+        <!-- Tab: CAMERAS -->
+        <div class="stab-panel" id="stabpanel-cameras">
+          <div style="max-width:560px">
+            <div class="form-shell">
+              <h2>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+                Camera / Device Sources
+              </h2>
+              <p style="font-size:12px;color:var(--dim);font-family:var(--mono);margin-bottom:14px;line-height:1.6">
+                Define cameras and devices used at this event. These will appear as dropdown options in the input form.
+              </p>
+
+              <!-- Locked view -->
+              <div id="camera-locked-view">
+                <div id="camera-list-locked" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px"></div>
+                <button class="submit-btn" style="background:none;border:1.5px solid var(--border2);color:var(--ink2);box-shadow:none" onclick="unlockCameras()">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  Edit Cameras
+                </button>
+              </div>
+
+              <!-- Edit view -->
+              <div id="camera-edit-view" style="display:none">
+                <div id="camera-list-edit" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px"></div>
+                <button class="add-device-btn" onclick="addCamera()" style="margin-bottom:14px">+ Add camera / device</button>
+                <div style="display:flex;gap:8px">
+                  <button onclick="saveCameras()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 14px;border-radius:var(--r-sm);background:var(--grad);border:none;cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:700;color:#fff;box-shadow:0 4px 14px var(--grad-shadow);transition:opacity .15s" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    Save & Lock
+                  </button>
+                  <button onclick="cancelEditCameras()" style="padding:10px 16px;border-radius:var(--r-sm);background:none;border:1.5px solid var(--border2);color:var(--ink2);cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:600;transition:all .12s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--ink2)'">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Tab: MEMBERS (Workspace) -->
         <div class="stab-panel" id="stabpanel-members" style="display:none">
           <div style="max-width:680px;display:flex;flex-direction:column;gap:16px">
@@ -1836,110 +1885,56 @@ tbody tr:hover .row-actions{opacity:1}
       <!-- SHEETS PAGE -->
       <div class="page" id="page-sheets">
         <div class="page-head" style="margin-bottom:16px">
-          <h1>Sheets</h1>
-          <p id="sheets-page-sub">Google Spreadsheet embed per event</p>
+          <h1>Export</h1>
+          <p id="sheets-page-sub">View and export transfer data from Supabase</p>
         </div>
 
-        <!-- No-sheet state (shown when no URL set) -->
-        <div id="sheet-empty-state" style="display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:48px 24px;background:var(--surface);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--shadow-sm)">
-          <div style="width:56px;height:56px;border-radius:14px;background:var(--green-bg);display:grid;place-items:center;margin-bottom:16px">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
-          </div>
-          <div style="font-size:16px;font-weight:800;color:var(--ink);margin-bottom:6px">No Sheet Added</div>
-          <div style="font-size:12px;color:var(--dim);font-family:var(--mono);margin-bottom:20px;max-width:300px;line-height:1.6">Add a Google Sheets embed URL for this event to view data directly here.</div>
-          <button onclick="document.getElementById('sheet-config-panel').scrollIntoView({behavior:'smooth'})" style="padding:9px 20px;border-radius:var(--r-sm);background:var(--green);border:none;cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:700;color:#fff;display:flex;align-items:center;gap:6px;transition:opacity .12s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Add Sheet URL
-          </button>
-        </div>
+        <!-- Stats bar -->
+        <div id="export-stats-bar" style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap"></div>
 
-        <!-- Iframe embed -->
-        <div id="sheet-embed-wrap" style="display:none;background:var(--surface);border-radius:var(--r);border:1px solid var(--border);overflow:hidden;box-shadow:var(--shadow-sm);margin-bottom:16px">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--card2)">
+        <!-- Table view -->
+        <div style="background:var(--surface);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--card2);gap:10px;flex-wrap:wrap">
             <div style="display:flex;align-items:center;gap:8px">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
-              <span id="sheet-embed-label" style="font-size:12px;font-weight:700;color:var(--ink)">Google Sheets</span>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+              <span style="font-size:12px;font-weight:700;color:var(--ink)">Transfer Records</span>
+              <span id="export-row-count" style="font-size:10px;font-family:var(--mono);color:var(--dim);background:var(--bg);padding:2px 7px;border-radius:10px;border:1px solid var(--border)">—</span>
             </div>
             <div style="display:flex;gap:6px">
-              <button onclick="openSheetInTab()" title="Open in new tab" style="padding:5px 10px;border-radius:5px;background:var(--bg);border:1px solid var(--border2);color:var(--ink2);cursor:pointer;font-size:11px;font-weight:600;font-family:var(--sans);display:flex;align-items:center;gap:4px;transition:all .12s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--ink2)'">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                Open
+              <button onclick="exportRefresh()" style="padding:6px 12px;border-radius:var(--r-sm);background:var(--bg);border:1px solid var(--border2);color:var(--ink2);cursor:pointer;font-size:11px;font-weight:600;font-family:var(--sans);display:flex;align-items:center;gap:5px;transition:all .12s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--ink2)'">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+                Refresh
               </button>
-              <button onclick="removeSheetEmbed()" title="Remove embed" style="padding:5px 10px;border-radius:5px;background:var(--bg);border:1px solid var(--border2);color:var(--dim);cursor:pointer;font-size:11px;font-weight:600;font-family:var(--sans);display:flex;align-items:center;gap:4px;transition:all .12s" onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--dim)'">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
-                Remove
-              </button>
-            </div>
-          </div>
-          <iframe id="sheet-iframe" src="" style="width:100%;height:calc(100vh - 240px);border:none;display:block;min-height:400px" allowfullscreen loading="lazy"></iframe>
-        </div>
-
-        <!-- Config panel: input URL + tutorial -->
-        <div id="sheet-config-panel" style="background:var(--surface);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--shadow-sm);overflow:hidden">
-          <!-- Input URL -->
-          <div style="padding:18px 20px;border-bottom:1px solid var(--border)">
-            <div style="font-size:13px;font-weight:800;color:var(--ink);margin-bottom:4px;display:flex;align-items:center;gap:7px">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
-              Embed URL for this event
-            </div>
-            <div style="font-size:11px;color:var(--dim);font-family:var(--mono);margin-bottom:12px">URL is saved per-event. Each event can have a different sheet.</div>
-            <div style="display:flex;gap:8px">
-              <input type="url" id="sheet-url-input" placeholder="https://docs.google.com/spreadsheets/d/e/…/pubhtml" style="flex:1;background:var(--bg);border:1.5px solid var(--border2);color:var(--ink);padding:10px 13px;border-radius:var(--r-sm);font-family:var(--mono);font-size:12px;outline:none;transition:border-color .15s" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'" onkeydown="if(event.key==='Enter')saveSheetUrl()">
-              <button onclick="saveSheetUrl()" style="padding:10px 18px;border-radius:var(--r-sm);background:var(--accent);border:none;cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:700;color:#fff;white-space:nowrap;transition:opacity .12s;display:flex;align-items:center;gap:6px" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                Save
+              <button onclick="exportToCSV()" style="padding:6px 12px;border-radius:var(--r-sm);background:var(--green);border:none;color:#fff;cursor:pointer;font-size:11px;font-weight:700;font-family:var(--sans);display:flex;align-items:center;gap:5px;transition:opacity .12s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Export CSV
               </button>
             </div>
           </div>
-
-          <!-- Tutorial -->
-          <div style="padding:18px 20px">
-            <div style="font-size:13px;font-weight:800;color:var(--ink);margin-bottom:16px;display:flex;align-items:center;gap:7px">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-              How to get an Embed URL
-            </div>
-            <div style="display:flex;flex-direction:column;gap:12px">
-              <div style="display:flex;gap:12px;align-items:flex-start">
-                <div style="width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:800;display:grid;place-items:center;flex-shrink:0;margin-top:1px">1</div>
-                <div>
-                  <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:3px">Open Google Spreadsheet</div>
-                  <div style="font-size:12px;color:var(--ink2);line-height:1.6">Open the linked Google Spreadsheet in Google Drive.</div>
-                </div>
-              </div>
-              <div style="display:flex;gap:12px;align-items:flex-start">
-                <div style="width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:800;display:grid;place-items:center;flex-shrink:0;margin-top:1px">2</div>
-                <div>
-                  <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:3px">Click File → Share → Publish to web</div>
-                  <div style="font-size:12px;color:var(--ink2);line-height:1.6">In the top menu, select <span style="background:var(--bg);padding:2px 6px;border-radius:4px;font-family:var(--mono);font-size:11px">File</span> → <span style="background:var(--bg);padding:2px 6px;border-radius:4px;font-family:var(--mono);font-size:11px">Share</span> → <span style="background:var(--bg);padding:2px 6px;border-radius:4px;font-family:var(--mono);font-size:11px">Publish to web</span>.</div>
-                </div>
-              </div>
-              <div style="display:flex;gap:12px;align-items:flex-start">
-                <div style="width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:800;display:grid;place-items:center;flex-shrink:0;margin-top:1px">3</div>
-                <div>
-                  <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:3px">Select the sheet tab to embed</div>
-                  <div style="font-size:12px;color:var(--ink2);line-height:1.6">Select a specific sheet tab (e.g. <span style="background:var(--bg);padding:2px 6px;border-radius:4px;font-family:var(--mono);font-size:11px">wedding-reception-day1</span>) or <em>Entire Document</em> for all sheets.</div>
-                </div>
-              </div>
-              <div style="display:flex;gap:12px;align-items:flex-start">
-                <div style="width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:800;display:grid;place-items:center;flex-shrink:0;margin-top:1px">4</div>
-                <div>
-                  <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:3px">Click Publish → Copy link</div>
-                  <div style="font-size:12px;color:var(--ink2);line-height:1.6">Click the <span style="background:var(--bg);padding:2px 6px;border-radius:4px;font-family:var(--mono);font-size:11px">Publish</span> button, then copy the link. The link format will look like this:</div>
-                  <div style="margin-top:8px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 12px;font-family:var(--mono);font-size:10px;color:var(--dim);word-break:break-all;line-height:1.6">https://docs.google.com/spreadsheets/d/e/<span style="color:var(--accent)">SPREADSHEET_ID</span>/pubhtml?gid=<span style="color:var(--green)">SHEET_GID</span>&amp;single=true&amp;widget=true&amp;headers=false</div>
-                </div>
-              </div>
-              <div style="display:flex;gap:12px;align-items:flex-start">
-                <div style="width:24px;height:24px;border-radius:50%;background:var(--green);color:#fff;font-size:11px;font-weight:800;display:grid;place-items:center;flex-shrink:0;margin-top:1px">5</div>
-                <div>
-                  <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:3px">Paste URL in the field above → Save</div>
-                  <div style="font-size:12px;color:var(--ink2);line-height:1.6">Paste the link into the Embed URL field above and click <strong>Save</strong>. The sheet will appear immediately.</div>
-                </div>
-              </div>
-            </div>
-            <div style="margin-top:16px;padding:12px 14px;border-radius:var(--r-sm);background:var(--orange-bg);border:1px solid rgba(232,106,42,.2);display:flex;gap:10px;align-items:flex-start">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.5" style="flex-shrink:0;margin-top:1px"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-              <div style="font-size:11px;color:var(--orange);font-family:var(--mono);line-height:1.6">Make sure the spreadsheet is published to the web first, not just shared. Without this, the embed will not display.</div>
-            </div>
+          <!-- Loading / empty / table -->
+          <div id="export-loading" style="padding:40px;text-align:center;color:var(--dim);font-size:12px;font-family:var(--mono);display:flex;align-items:center;justify-content:center;gap:8px">
+            <span class="spin"></span> Loading data…
+          </div>
+          <div id="export-empty" style="display:none;padding:40px;text-align:center;color:var(--dim);font-size:12px;font-family:var(--mono)">No transfer records for this event.</div>
+          <div style="overflow-x:auto">
+            <table id="export-table" style="width:100%;border-collapse:collapse;display:none">
+              <thead>
+                <tr style="background:var(--card2)">
+                  <th style="padding:8px 12px;text-align:left;font-size:10px;font-weight:700;color:var(--dim);font-family:var(--mono);border-bottom:1px solid var(--border);white-space:nowrap">#</th>
+                  <th style="padding:8px 12px;text-align:left;font-size:10px;font-weight:700;color:var(--dim);font-family:var(--mono);border-bottom:1px solid var(--border);white-space:nowrap">TIME</th>
+                  <th style="padding:8px 12px;text-align:left;font-size:10px;font-weight:700;color:var(--dim);font-family:var(--mono);border-bottom:1px solid var(--border);white-space:nowrap">CREW</th>
+                  <th style="padding:8px 12px;text-align:left;font-size:10px;font-weight:700;color:var(--dim);font-family:var(--mono);border-bottom:1px solid var(--border);white-space:nowrap">STAGE</th>
+                  <th style="padding:8px 12px;text-align:left;font-size:10px;font-weight:700;color:var(--dim);font-family:var(--mono);border-bottom:1px solid var(--border);white-space:nowrap">SLOT</th>
+                  <th style="padding:8px 12px;text-align:left;font-size:10px;font-weight:700;color:var(--dim);font-family:var(--mono);border-bottom:1px solid var(--border);white-space:nowrap">CAMERA</th>
+                  <th style="padding:8px 12px;text-align:left;font-size:10px;font-weight:700;color:var(--dim);font-family:var(--mono);border-bottom:1px solid var(--border);white-space:nowrap">MEDIA</th>
+                  <th style="padding:8px 12px;text-align:left;font-size:10px;font-weight:700;color:var(--dim);font-family:var(--mono);border-bottom:1px solid var(--border);white-space:nowrap">QTY</th>
+                  <th style="padding:8px 12px;text-align:left;font-size:10px;font-weight:700;color:var(--dim);font-family:var(--mono);border-bottom:1px solid var(--border);white-space:nowrap">SIZE (MB)</th>
+                  <th style="padding:8px 12px;text-align:left;font-size:10px;font-weight:700;color:var(--dim);font-family:var(--mono);border-bottom:1px solid var(--border);white-space:nowrap">STATUS</th>
+                  <th style="padding:8px 12px;text-align:left;font-size:10px;font-weight:700;color:var(--dim);font-family:var(--mono);border-bottom:1px solid var(--border);white-space:nowrap">STORAGE</th>
+                </tr>
+              </thead>
+              <tbody id="export-tbody"></tbody>
+            </table>
           </div>
         </div>
       </div><!-- /sheets -->
@@ -2243,7 +2238,7 @@ tbody tr:hover .row-actions{opacity:1}
 <div id="public-view">
   <div class="public-header">
     <!-- Logo kiri -->
-    <div class="public-brand"><div style="width:180px;height:64px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 300" style="width:100%;height:100%;display:block"><defs><linearGradient id="mt-grad-4" x1="-1389.52" y1="59.6" x2="-1388.52" y2="58.6" gradientTransform="translate(266827 -11200) scale(192)" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#1a3aaa"/><stop offset=".55" stop-color="#00bcd4"/><stop offset="1" stop-color="#7eefc0"/></linearGradient></defs><rect class="mt-logo-bg" fill="url(#mt-grad-4)" x="39.76" y="51.37" width="192" height="192" rx="40" ry="40"/><path class="mt-logo-white" d="M105.76,96.87h42c6.63,0,12,5.37,12,12v6h12v-6c0-13.25-10.75-24-24-24h-42c-6.63,0-12,5.37-12,12v96c0,6.63,5.37,12,12,12h60c6.63,0,12-5.37,12-12h0v-19.02l-12,7.02v12h-60v-96Z"/><polyline class="mt-logo-stroke-r" points="147.76 96.87 147.76 120.87 171.76 120.87"/><line class="mt-logo-stroke" x1="165.76" y1="150.87" x2="117.76" y2="150.87"/><line class="mt-logo-stroke" x1="171.76" y1="174.87" x2="117.76" y2="174.87"/><text class="mt-logo-name" transform="translate(267.79 156.69)"><tspan x="0" y="0">MediaTrack</tspan></text><text class="mt-logo-sub" transform="translate(271.92 216.76)"><tspan x="0" y="0">Media Transfer Tracking</tspan></text></svg></div></div>
+    <div class="public-brand"><div style="width:180px;height:64px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="35 48 850 225" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%;display:block"><defs><linearGradient id="mt-grad-4" x1="-1389.52" y1="59.6" x2="-1388.52" y2="58.6" gradientTransform="translate(266827 -11200) scale(192)" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#1a3aaa"/><stop offset=".55" stop-color="#00bcd4"/><stop offset="1" stop-color="#7eefc0"/></linearGradient></defs><rect class="mt-logo-bg" fill="url(#mt-grad-4)" x="39.76" y="51.37" width="192" height="192" rx="40" ry="40"/><path class="mt-logo-white" d="M105.76,96.87h42c6.63,0,12,5.37,12,12v6h12v-6c0-13.25-10.75-24-24-24h-42c-6.63,0-12,5.37-12,12v96c0,6.63,5.37,12,12,12h60c6.63,0,12-5.37,12-12h0v-19.02l-12,7.02v12h-60v-96Z"/><polyline class="mt-logo-stroke-r" points="147.76 96.87 147.76 120.87 171.76 120.87"/><line class="mt-logo-stroke" x1="165.76" y1="150.87" x2="117.76" y2="150.87"/><line class="mt-logo-stroke" x1="171.76" y1="174.87" x2="117.76" y2="174.87"/><text class="mt-logo-name" transform="translate(267.79 156.69)"><tspan x="0" y="0">MediaTrack</tspan></text><text class="mt-logo-sub" transform="translate(271.92 216.76)"><tspan x="0" y="0">Media Transfer Tracking</tspan></text></svg></div></div>
     <!-- Info tengah/kanan -->
     <div class="public-header-right">
       <div class="public-live"><span class="live-pulse"></span><span id="pub-event-live">Live · —</span></div>
@@ -2336,6 +2331,31 @@ tbody tr:hover .row-actions{opacity:1}
 </div>
 
 <!-- CONFIRM RESET MODAL -->
+<!-- GENERIC CONFIRM MODAL -->
+<div class="confirm-modal-backdrop hidden" id="confirm-dialog">
+  <div class="confirm-modal-box">
+    <div class="confirm-modal-head">
+      <div class="confirm-modal-icon">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <div>
+        <div style="font-size:14px;font-weight:800;color:var(--red)" id="confirm-dialog-title">Confirm</div>
+        <div style="font-size:11px;color:var(--dim);font-family:var(--mono)" id="confirm-dialog-sub">This action cannot be undone</div>
+      </div>
+    </div>
+    <div class="confirm-modal-body">
+      <p id="confirm-dialog-body">Are you sure?</p>
+    </div>
+    <div class="confirm-modal-foot">
+      <button class="btn-ghost" id="confirm-dialog-cancel">Cancel</button>
+      <button class="btn-danger" id="confirm-dialog-ok">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+        <span id="confirm-dialog-ok-label">Delete</span>
+      </button>
+    </div>
+  </div>
+</div>
+
 <div class="confirm-modal-backdrop hidden" id="confirm-reset-modal">
   <div class="confirm-modal-box">
     <div class="confirm-modal-head">
@@ -2466,7 +2486,7 @@ const DMT_CONFIG = {
   workspaceId:   null,
   supabaseUrl:  'https://snycbhoevaxfrhiylycl.supabase.co',
   supabaseKey:  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNueWNiaG9ldmF4ZnJoaXlseWNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MTI5MDMsImV4cCI6MjA5MjE4ODkwM30.qN-lPQJ9q_DqgwYcosSpTu0Q4zfssYjpNLfkIpYPD5c',
-  gasUrl: '',
+  // gasUrl removed — app now uses Supabase directly
 
   /* -- 3. DEFAULT EVENT --------------------------------------- */
   defaultEvent: {
@@ -2546,7 +2566,18 @@ const DEVICES_DEFAULT = DMT_CONFIG.defaultDevices || [];
 const SESSION_KEY='dmt_session', DEVICES_KEY='dmt_devices', SESSION_TTL=12*60*60*1000;
 
 // Per-user key prefix — all app data keyed by user ID
-function _uk(key){ return (_authUserId||'anon')+'_'+key; }
+function _uk(key){
+  // Prefer in-memory userId, fallback to localStorage (covers brief window between
+  // DOMContentLoaded and bootApp where _authUserId hasn't been set yet in memory,
+  // but the value is already in localStorage from a previous session)
+  const uid = _authUserId || localStorage.getItem('mt_uid') || null;
+  if(!uid){
+    // Only warn when truly no userId anywhere — not during normal boot sequence
+    console.debug('[_uk] no userId yet, using local_ prefix for key:', key);
+    return 'local_'+key;
+  }
+  return uid+'_'+key;
+}
 
 /* ================================
    SUPABASE API LAYER
@@ -2615,12 +2646,16 @@ async function sbUpsert(table, data, onConflict){
 
 // GET transfers for an event -> [{id,event_id,nama,...}]
 async function sbLoadTransfers(eventId){
-  // RLS automatically filters by workspace. We also use the auth token.
-  const rows=await wsGet('transfers',{
+  // RLS filters by workspace via JWT. We also add explicit workspace_id filter
+  // as defence-in-depth against event_id collision across workspaces.
+  const wsId = getWorkspaceId();
+  const params = {
     'event_id': 'eq.'+eventId,
-    'order': 'created_at.asc',
-    'select': '*'
-  });
+    'order':    'created_at.asc',
+    'select':   '*'
+  };
+  if(wsId) params['workspace_id'] = 'eq.'+wsId;
+  const rows=await wsGet('transfers', params);
   // Normalise to match existing row shape
   return rows.map(r=>({
     timestamp:   new Date(r.created_at).toLocaleString(DMT_CONFIG.locale,{timeZone:DMT_CONFIG.timezone,hour12:false}),
@@ -2757,6 +2792,37 @@ async function sbDeleteEvent(eventId){
     console.warn('[sbDeleteEvent] failed:', e.message);
   }
 }
+
+/* == GENERIC CONFIRM DIALOG (replaces window.confirm for mobile compatibility) ==
+   Usage: const ok = await showConfirm({ title, sub, body, okLabel })
+   Returns true if user clicked confirm, false if cancelled.
+*/
+let _confirmResolve = null;
+function showConfirm({ title='Confirm', sub='This action cannot be undone', body='Are you sure?', okLabel='Delete' } = {}) {
+  return new Promise(resolve => {
+    _confirmResolve = resolve;
+    document.getElementById('confirm-dialog-title').textContent   = title;
+    document.getElementById('confirm-dialog-sub').textContent     = sub;
+    document.getElementById('confirm-dialog-body').textContent    = body;
+    document.getElementById('confirm-dialog-ok-label').textContent= okLabel;
+    const dlg = document.getElementById('confirm-dialog');
+    dlg.classList.remove('hidden');
+    // Focus cancel by default (safer on mobile)
+    setTimeout(() => document.getElementById('confirm-dialog-cancel')?.focus(), 50);
+  });
+}
+function _confirmDialogResolve(val) {
+  document.getElementById('confirm-dialog').classList.add('hidden');
+  if (_confirmResolve) { _confirmResolve(val); _confirmResolve = null; }
+}
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('confirm-dialog-ok')?.addEventListener('click',    () => _confirmDialogResolve(true));
+  document.getElementById('confirm-dialog-cancel')?.addEventListener('click', () => _confirmDialogResolve(false));
+  // Tap backdrop to cancel
+  document.getElementById('confirm-dialog')?.addEventListener('click', e => {
+    if (e.target === document.getElementById('confirm-dialog')) _confirmDialogResolve(false);
+  });
+});
 
 let rows=[], filterStage='all', filterRole='all', currentUser=null, currentRole='data_manager';
 function isGuest(){return currentRole==='guest';}
@@ -3174,6 +3240,7 @@ async function doRegister(){
 }
 
 /* -- Create workspace after auth is confirmed -- */
+/** @deprecated Dead code — workspace creation handled server-side. Safe to remove in future cleanup. */
 async function _createWorkspaceForUser(userId, wsName, displayName, token){
   // IMPORTANT: set token FIRST before any fetch so sbHeadersAuth() picks it up
   if(token){ _authToken=token; localStorage.setItem('mt_token',token); }
@@ -3490,7 +3557,13 @@ async function changeMemberRole(memberId,newRole){
   catch(err){toast('Failed: '+err.message,'err');}
 }
 async function removeMember(memberId){
-  if(!confirm('Remove this member from workspace?'))return;
+  const ok = await showConfirm({
+    title: 'Remove Member',
+    sub:   'This action cannot be undone',
+    body:  'Remove this member from the workspace?',
+    okLabel: 'Remove'
+  });
+  if(!ok)return;
   try{await wsDelete('workspace_members',{'id':'eq.'+memberId});loadMembers();toast('Member removed','ok');}
   catch(err){toast('Failed: '+err.message,'err');}
 }
@@ -3677,12 +3750,12 @@ function bootApp(sess){
   // Supabase -- always connected, no GAS URL needed
   document.getElementById('gas-bar')?.classList.add('hidden');
   loadData();
-  buildCrewDropdown();buildScheduleFull();buildDeviceDropdown();renderDeviceSettings();buildDayDropdown();startStripClock();
+  buildCrewDropdown();buildScheduleFull();buildDeviceDropdown();renderDeviceSettings();buildCameraDropdown();buildDayDropdown();startStripClock();
   renderSidebarEvents();
   applyNavState();
   const _activeEv=getActiveEvent();
   if(_activeEv)applyEvent(_activeEv);
-  syncDevicesFromGAS();
+  syncDevicesFromSupabase(); // renamed from syncDevicesFromGAS
   // Pull events then crew+schedule from Supabase (chained so events load first)
   loadEventsFromSupabase()
     .then(()=>{
@@ -3961,6 +4034,7 @@ function setActiveEvent(id){
   try{ initScheduleFromStorage(id); }catch(e){ console.warn('initSched err:',e); }
   // Pull latest crew+schedule from Supabase for this event (overwrites local if remote has data)
   sbPullCrewAndSchedule(id).catch(e=>console.warn('[setActiveEvent] pull failed:',e.message));
+  sbPullCameras(id).catch(()=>{});
   rows=[];
   const body=document.getElementById('tbl-body');
   if(body)body.innerHTML=`<tr class="tbl-msg"><td colspan="10"><span class="spin"></span> Loading...</td></tr>`;
@@ -5159,63 +5233,255 @@ function testSupabaseConnection(){
       btn.disabled=false;
     });
 }
-/* == SHEET EMBED (per-event) == */
-const SHEET_KEY_PREFIX='dmt_sheet_url_';
-function getSheetKey(eventId){return SHEET_KEY_PREFIX+(eventId||getActiveEventId()||'default');}
-function getSheetUrl(eventId){return localStorage.getItem(getSheetKey(eventId))||'';}
-function setSheetUrl(eventId,url){
-  if(url)localStorage.setItem(getSheetKey(eventId),url);
-  else localStorage.removeItem(getSheetKey(eventId));
-}
+/* == EXPORT PAGE (replaces Google Sheets embed) == */
+let _exportRows = [];
 
-function saveSheetUrl(){
-  if(isGuest()){toast('Guest mode cannot edit sheet URL','err');return;}
-  const val=document.getElementById('sheet-url-input').value.trim();
-  if(!val){toast('URL cannot be empty','err');return;}
-  // Basic validation
-  if(!val.includes('docs.google.com/spreadsheets')){
-    toast('Harus URL Google Sheets','err');return;
+async function exportRefresh(){
+  const evId = getActiveEventId();
+  if(!evId){ toast('No active event','err'); return; }
+  const loading = document.getElementById('export-loading');
+  const empty   = document.getElementById('export-empty');
+  const table   = document.getElementById('export-table');
+  const counter = document.getElementById('export-row-count');
+  if(loading) loading.style.display = 'flex';
+  if(empty)   empty.style.display   = 'none';
+  if(table)   table.style.display   = 'none';
+  try {
+    _exportRows = await sbLoadTransfers(evId);
+    _renderExportTable(_exportRows);
+    if(counter) counter.textContent = _exportRows.length + ' rows';
+    _renderExportStats(_exportRows);
+  } catch(e) {
+    toast('Failed to load: ' + e.message, 'err');
+    if(loading) loading.style.display = 'none';
   }
-  const eventId=getActiveEventId();
-  setSheetUrl(eventId,val);
-  renderSheetPage();
-  toast('(ok) Sheet URL saved','ok');
 }
 
-function removeSheetEmbed(){
-  if(!confirm('Remove sheet embed for this event?'))return;
-  setSheetUrl(getActiveEventId(),'');
-  document.getElementById('sheet-url-input').value='';
-  renderSheetPage();
-  toast('Sheet embed removed','ok');
+function _renderExportTable(data){
+  const loading = document.getElementById('export-loading');
+  const empty   = document.getElementById('export-empty');
+  const table   = document.getElementById('export-table');
+  const tbody   = document.getElementById('export-tbody');
+  if(loading) loading.style.display = 'none';
+  if(!data.length){
+    if(empty) empty.style.display = 'block';
+    return;
+  }
+  if(table) table.style.display = 'table';
+  tbody.innerHTML = data.map((r,i)=>`<tr style="border-bottom:1px solid var(--border);transition:background .1s" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background=''">
+    <td style="padding:7px 12px;font-size:11px;font-family:var(--mono);color:var(--dim)">${i+1}</td>
+    <td style="padding:7px 12px;font-size:11px;font-family:var(--mono);color:var(--ink2);white-space:nowrap">${r.timestamp||'—'}</td>
+    <td style="padding:7px 12px;font-size:11px;font-weight:600;color:var(--ink);white-space:nowrap">${x(r.nama)||'—'}</td>
+    <td style="padding:7px 12px;font-size:11px;font-family:var(--mono);color:var(--ink2)">${x(r.stage)||'—'}</td>
+    <td style="padding:7px 12px;font-size:11px;font-family:var(--mono);color:var(--ink2)">${x(r.slot)||'—'}</td>
+    <td style="padding:7px 12px;font-size:11px;font-family:var(--mono);color:var(--ink2)">${x(r.camera)||'—'}</td>
+    <td style="padding:7px 12px;font-size:11px;font-family:var(--mono);color:var(--ink2)">${x(r.media)||'—'}</td>
+    <td style="padding:7px 12px;font-size:11px;font-family:var(--mono);color:var(--ink);text-align:right">${r.jumlah||0}</td>
+    <td style="padding:7px 12px;font-size:11px;font-family:var(--mono);color:var(--ink);text-align:right">${r.filesize||0}</td>
+    <td style="padding:7px 12px"><span style="font-size:10px;font-weight:700;font-family:var(--mono);padding:2px 8px;border-radius:10px;background:${r.status==='transferred'?'var(--green-bg)':'var(--orange-bg)'};color:${r.status==='transferred'?'var(--green)':'var(--orange)'}">${r.status||'—'}</span></td>
+    <td style="padding:7px 12px;font-size:11px;font-family:var(--mono);color:var(--ink2)">${x(r.storage||r.device||'—')}</td>
+  </tr>`).join('');
 }
 
-function openSheetInTab(){
-  const url=getSheetUrl(getActiveEventId());
-  if(url)window.open(url,'_blank');
+function _renderExportStats(data){
+  const bar = document.getElementById('export-stats-bar');
+  if(!bar) return;
+  const totalFiles = data.reduce((s,r)=>s+(+r.jumlah||0),0);
+  const totalMB    = data.reduce((s,r)=>s+(+r.filesize||0),0);
+  const statItems  = [
+    {label:'Records', val: data.length, color:'var(--accent)'},
+    {label:'Files',   val: totalFiles,  color:'var(--green)'},
+    {label:'Total MB',val: totalMB.toLocaleString(), color:'var(--purple)'},
+  ];
+  bar.innerHTML = statItems.map(s=>`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:8px 14px;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow-sm)">
+    <span style="font-size:18px;font-weight:800;color:${s.color};font-family:var(--mono)">${s.val}</span>
+    <span style="font-size:11px;color:var(--dim);font-family:var(--mono)">${s.label}</span>
+  </div>`).join('');
 }
 
+function exportToCSV(){
+  if(!_exportRows.length){ toast('No data to export','err'); return; }
+  const ev = getActiveEvent();
+  const cols = ['timestamp','nama','peran','stage','slot','camera','media','jumlah','filesize','status','storage'];
+  const header = cols.join(',');
+  const rows = _exportRows.map(r=>cols.map(c=>{
+    const v = String(r[c]||'').replace(/"/g,'""');
+    return v.includes(',')||v.includes('"') ? `"${v}"` : v;
+  }).join(','));
+  const csv = [header,...rows].join('\n');
+  const blob = new Blob([csv],{type:'text/csv'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = `mediatrack_${(ev?.name||'export').replace(/\s+/g,'_')}_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('CSV exported','ok');
+}
+
+// Called when switching to sheets/export page
 function renderSheetPage(){
-  const eventId=getActiveEventId();
-  const ev=getActiveEvent();
-  const url=getSheetUrl(eventId);
-  const embedWrap=document.getElementById('sheet-embed-wrap');
-  const emptyState=document.getElementById('sheet-empty-state');
-  const iframe=document.getElementById('sheet-iframe');
-  const label=document.getElementById('sheet-embed-label');
-  const sub=document.getElementById('sheets-page-sub');
-  const input=document.getElementById('sheet-url-input');
-  if(sub&&ev)sub.textContent=`Spreadsheet embed . ${ev.name||''}`;
-  if(input&&!input.value)input.value=url||'';
-  if(url){
-    if(embedWrap)embedWrap.style.display='block';
-    if(emptyState)emptyState.style.display='none';
-    if(iframe&&iframe.src!==url)iframe.src=url;
-    if(label&&ev)label.textContent=`${ev.name||'Google Sheets'}`;
+  const ev  = getActiveEvent();
+  const sub = document.getElementById('sheets-page-sub');
+  if(sub && ev) sub.textContent = `Transfer data · ${ev.name||''}`;
+  exportRefresh();
+}
+
+
+/* == CAMERA / DEVICE SOURCE SETTINGS == */
+const CAMERAS_KEY = 'dmt_cameras';
+function _camerasKey(evId){ return _uk('dmt_cameras_') + (evId || getActiveEventId() || 'default'); }
+
+function getCameras(evId){
+  try{
+    const s = localStorage.getItem(_camerasKey(evId));
+    if(s){ const p = JSON.parse(s); if(Array.isArray(p)) return p; }
+  }catch{}
+  return [];
+}
+
+function setCameras(arr, evId){
+  localStorage.setItem(_camerasKey(evId || getActiveEventId()), JSON.stringify(arr));
+}
+
+function renderCameraSettings(){
+  const cams = getCameras();
+
+  // Locked view
+  const lockedEl = document.getElementById('camera-list-locked');
+  if(lockedEl){
+    if(cams.length){
+      lockedEl.innerHTML = cams.map(c=>`
+        <div style="padding:7px 10px;border-radius:var(--r-sm);background:var(--bg);border:1px solid var(--border);font-family:var(--mono);font-size:11px;display:flex;align-items:center;gap:8px;color:var(--ink2)">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+          <span style="flex:1">${x(c)}</span>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>`).join('');
+    } else {
+      lockedEl.innerHTML = '<div style="font-size:12px;color:var(--dim);font-family:var(--mono);padding:8px 0">No cameras yet. Click Edit Cameras.</div>';
+    }
+  }
+
+  // Edit view
+  const editEl = document.getElementById('camera-list-edit');
+  if(editEl){
+    editEl.innerHTML = cams.map((c,i)=>`
+      <div class="device-row">
+        <input type="text" value="${x(c)}" id="cam-${i}" placeholder="e.g. Sony FX6 A, DJI Mavic 3">
+        <button class="device-remove" onclick="removeCamera(${i})">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>`).join('');
+  }
+
+  // Update badge
+  const badge = document.getElementById('stab-cameras-badge');
+  if(badge) badge.textContent = cams.length ? cams.length : '';
+
+  buildCameraDropdown();
+}
+
+function unlockCameras(){
+  document.getElementById('camera-locked-view').style.display = 'none';
+  document.getElementById('camera-edit-view').style.display = 'block';
+  renderCameraSettings();
+}
+function cancelEditCameras(){
+  document.getElementById('camera-edit-view').style.display = 'none';
+  document.getElementById('camera-locked-view').style.display = 'block';
+  renderCameraSettings();
+}
+function addCamera(){
+  const cams = getCameras();
+  cams.push('');
+  setCameras(cams);
+  renderCameraSettings();
+  // Focus last input
+  setTimeout(()=>{
+    const inputs = document.querySelectorAll('[id^="cam-"]');
+    inputs[inputs.length - 1]?.focus();
+  }, 50);
+}
+function removeCamera(i){
+  const cams = getCameras();
+  cams.splice(i, 1);
+  setCameras(cams);
+  renderCameraSettings();
+}
+
+async function saveCameras(){
+  const inputs = document.querySelectorAll('[id^="cam-"]');
+  const cams   = [...inputs].map(inp => inp.value.trim()).filter(Boolean);
+  // Deduplicate
+  const unique = [...new Set(cams)];
+  setCameras(unique);
+  buildCameraDropdown();
+  document.getElementById('camera-edit-view').style.display   = 'none';
+  document.getElementById('camera-locked-view').style.display = 'block';
+  renderCameraSettings();
+  // Sync to Supabase app_config
+  try{
+    await sbUpsert('app_config', {
+      key:          'cameras',
+      event_id:     getActiveEventId(),
+      workspace_id: getWorkspaceId() || null,
+      value:        unique
+    }, 'key,event_id');
+    toast(`${unique.length} cameras saved & synced (ok)`, 'ok');
+  }catch{
+    toast(`${unique.length} cameras saved locally`, 'ok');
+  }
+}
+
+
+function onCameraChange(){
+  const sel = document.getElementById('f-camera');
+  const manualWrap = document.getElementById('f-camera-manual-wrap');
+  if(!manualWrap) return;
+  if(sel.value === '__manual__'){
+    manualWrap.style.display = 'block';
+    document.getElementById('f-camera-manual')?.focus();
   } else {
-    if(embedWrap)embedWrap.style.display='none';
-    if(emptyState)emptyState.style.display='flex';
-    if(iframe)iframe.src='';
+    manualWrap.style.display = 'none';
+  }
+}
+
+function buildCameraDropdown(){
+  const sel  = document.getElementById('f-camera');
+  if(!sel) return;
+  const prev = sel.value; // preserve current selection
+  const cams = getCameras();
+  sel.innerHTML = '<option value="">— Select camera —</option>';
+  cams.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c; o.textContent = c;
+    sel.appendChild(o);
+  });
+  // Add manual option at the bottom
+  const manual = document.createElement('option');
+  manual.value = '__manual__'; manual.textContent = '✏ Enter manually…';
+  sel.appendChild(manual);
+  // Restore previous value if still in list
+  if(prev && [...sel.options].find(o => o.value === prev)) sel.value = prev;
+}
+
+// sbPull extension — also pull cameras from app_config
+async function sbPullCameras(evId){
+  if(!_authToken || !evId) return;
+  try{
+    const rows = await wsGet('app_config', {
+      'event_id': 'eq.' + evId,
+      'key':      'eq.cameras',
+      'select':   'value'
+    });
+    if(rows.length && Array.isArray(rows[0].value) && rows[0].value.length){
+      setCameras(rows[0].value, evId);
+      buildCameraDropdown();
+      renderCameraSettings();
+      console.log('[pull] cameras:', rows[0].value.length, 'for event', evId);
+    }
+  }catch(e){
+    console.warn('[sbPullCameras] failed:', e.message);
   }
 }
 
@@ -5419,7 +5685,7 @@ function getDevices(){
 }
 
 // Ambil device list from GAS dan sync ke localStorage
-async function syncDevicesFromGAS(){
+async function syncDevicesFromSupabase(){
   try{
     const devs=await sbGetDevices(getActiveEventId());
     if(Array.isArray(devs)&&devs.length){
@@ -5512,7 +5778,7 @@ document.getElementById('mainForm').addEventListener('submit',async e=>{
   if(!fsRaw||fsRaw<=0){toast('Enter a valid Total Filesize','err');return;}
   const fsUnit=document.getElementById('f-filesize-unit').value;
   const filesizeMB=fsUnit==='TB'?fsRaw*1024*1024:fsUnit==='GB'?fsRaw*1024:fsRaw;
-  const payload={action:'submit',eventId:getActiveEventId(),nama:crewName,peran:crewRole,stage:v('f-stage'),slot:v('f-slot'),camera:v('f-camera'),status:document.getElementById('f-status')?.value||'transferred',media:v('f-media'),jumlah:0,filesize:filesizeMB,storage:v('f-storage'),catatan:v('f-catatan'),dm:currentUser,timestamp:new Date().toLocaleString(DMT_CONFIG.locale,{timeZone:DMT_CONFIG.timezone,hour12:false})};
+  const payload={action:'submit',eventId:getActiveEventId(),nama:crewName,peran:crewRole,stage:v('f-stage'),slot:v('f-slot'),camera:(v('f-camera')==='__manual__' ? (document.getElementById('f-camera-manual')?.value.trim()||'') : v('f-camera')),status:document.getElementById('f-status')?.value||'transferred',media:v('f-media'),jumlah:0,filesize:filesizeMB,storage:v('f-storage'),catatan:v('f-catatan'),dm:currentUser,timestamp:new Date().toLocaleString(DMT_CONFIG.locale,{timeZone:DMT_CONFIG.timezone,hour12:false})};
   try{
     await sbSubmitTransfer(payload);
     // Save last-used storage for smart default
@@ -5683,11 +5949,32 @@ function startTokenRefresh() {
   setTimeout(sbRefreshToken, 5 * 60 * 1000);
 }
 
+function _checkSessionExpiry(){
+  try{
+    const sess = loadSession();
+    if(!sess || !sess.expires) return;
+    const remaining = sess.expires - Date.now();
+    const WARN_THRESHOLD = 15 * 60 * 1000; // warn at 15 min remaining
+    if(remaining > 0 && remaining <= WARN_THRESHOLD && !window._sessionWarnShown){
+      window._sessionWarnShown = true;
+      const mins = Math.ceil(remaining / 60000);
+      toast(`Session expires in ${mins} min — save your work and re-login soon.`, 'warn');
+    }
+    if(remaining <= 0 && !window._sessionExpiredShown){
+      window._sessionExpiredShown = true;
+      toast('Session expired. Please sign in again.', 'err');
+      setTimeout(() => doLogout(), 3000);
+    }
+  }catch(e){}
+}
+
 function startAutoRefresh(){
   if(_autoRefreshTimer)clearInterval(_autoRefreshTimer);
   _autoRefreshTimer=setInterval(()=>{
     const activePage=document.querySelector('.page.active');
     if(activePage&&(activePage.id==='page-dashboard'||activePage.id==='page-crew'))loadData(true);
+    // Session expiry warning — warn 15 min before SESSION_TTL (12h) expires
+    _checkSessionExpiry();
   },30000);
   // Tick the "X ago" label every 5 seconds
   if(_freshnessTimer)clearInterval(_freshnessTimer);
@@ -6576,10 +6863,26 @@ const RESET_COLORS={
   all:{title:'Reset All',sub:'Wipe everything -- fresh start',desc:'All transfers, devices, events, crew, and schedule data will be <strong>permanently deleted</strong>. The app returns to a blank slate. This action <strong>cannot be undone</strong>.'},
 };
 /* == DANGER ZONE PIN == */
-const DANGER_PIN = DMT_CONFIG.dangerPin || '0000';
+const DANGER_PIN = (()=>{
+  const p = DMT_CONFIG.dangerPin || '';
+  if(!p){
+    // Empty string = intentionally no PIN configured, Danger Zone disabled — silent
+    return null;
+  }
+  if(p === '0000'){
+    // Default PIN still set — warn once and block access
+    console.warn('[security] dangerPin is still default (0000). Danger Zone is locked. Set a custom PIN in DMT_CONFIG.dangerPin.');
+    return null;
+  }
+  return p;
+})();
 let _pinBuffer = '';
 
 function openDangerPin(){
+  if(DANGER_PIN === null){
+    toast('Danger Zone is locked — configure dangerPin in DMT_CONFIG to enable access.','err');
+    return;
+  }
   _pinBuffer='';
   updatePinDots();
   const _pem=document.getElementById('pin-error-msg');if(_pem)_pem.textContent='';
@@ -6609,6 +6912,11 @@ function updatePinDots(){
   }
 }
 function checkPin(){
+  if(DANGER_PIN === null){
+    toast('PIN not configured.','err');
+    closeDangerPin();
+    return;
+  }
   if(_pinBuffer===DANGER_PIN){
     closeDangerPin();
     document.getElementById('dz-locked').style.display='none';
@@ -6779,12 +7087,16 @@ async function saveEdit(){
   }
 }
 
-function confirmDelete(idx){
+async function confirmDelete(idx){
   const r=rows[idx];
   if(!r)return;
-  if(!confirm(`Delete transfer record "${r.nama}" -- ${r.slot||r.stage}?
-
-This data will be permanently removed from the spreadsheet.`))return;
+  const ok = await showConfirm({
+    title: 'Delete Transfer',
+    sub:   'Permanently removed from database',
+    body:  `Delete record "${r.nama}" — ${r.slot||r.stage||''}?`,
+    okLabel: 'Delete'
+  });
+  if(!ok)return;
   deleteRow(idx);
 }
 
@@ -6815,6 +7127,7 @@ function switchSettingsTab(tab) {
   document.getElementById('stabpanel-' + tab)?.classList.add('active');
   if(tab === 'crew') renderCrewSettings();
   if(tab === 'schedule') renderScheduleSettings();
+  if(tab === 'cameras') renderCameraSettings();
 }
 
 /* == CREW SETTINGS == */
@@ -6853,6 +7166,8 @@ async function sbPullCrewAndSchedule(evId) {
 
     if (gotCrew || gotSched)
       console.log('[pull] crew=' + gotCrew + ' schedule=' + gotSched + ' for event', evId);
+    // Also pull cameras
+    sbPullCameras(evId).catch(()=>{});
   } catch (e) {
     console.warn('[sbPullCrewAndSchedule] failed:', e.message);
   }
@@ -7078,7 +7393,13 @@ async function saveCrew() {
 }
 
 async function resetCrewToDefault() {
-  if (!confirm('Reset crew list to defaults? Custom changes will be lost.')) return;
+  const ok = await showConfirm({
+    title: 'Reset Crew',
+    sub:   'Custom changes will be lost',
+    body:  'Reset crew list to defaults?',
+    okLabel: 'Reset'
+  });
+  if (!ok) return;
   localStorage.removeItem(_uk(CREW_KEY));
   // Restore from config default
   const defaultCrew = window._CREW_DEFAULT
@@ -7369,7 +7690,13 @@ function addStage() {
 }
 
 async function deleteStage(stage) {
-  if (!confirm('Delete scene "' + stage + '" and all its slots?')) return;
+  const ok = await showConfirm({
+    title: 'Delete Scene',
+    sub:   'All slots in this scene will be removed',
+    body:  `Delete scene "${stage}" and all its slots?`,
+    okLabel: 'Delete Scene'
+  });
+  if (!ok) return;
   _collectSchedEditsToMemory();
   const { data } = getScheduleData();
   delete data[stage];
@@ -7414,7 +7741,13 @@ async function saveScheduleSettings() {
 }
 
 async function resetScheduleToDefault() {
-  if (!confirm('Reset schedule to defaults? Custom changes will be lost.')) return;
+  const ok = await showConfirm({
+    title: 'Reset Schedule',
+    sub:   'Custom changes will be lost',
+    body:  'Reset schedule to defaults?',
+    okLabel: 'Reset'
+  });
+  if (!ok) return;
   localStorage.removeItem(_uk(SCHED_KEY));
   _activeSchedStage = null;
   const defaultSched = window._SCHED_DEFAULT
