@@ -6609,30 +6609,6 @@ function printLog(src){
     <div class="modal-body" id="crew-detail-body"></div>
   </div>
 </div>
-
-<!-- ESD backdrop (mobile only) -->
-<div id="esd-backdrop" style="display:none;position:fixed;inset:0;background:rgba(15,21,35,.45);z-index:999;backdrop-filter:blur(2px)" onclick="event.stopPropagation();closeEventSwitcher()"></div>
-
-<!-- EVENT SWITCHER DROPDOWN -->
-<div class="event-switcher-dropdown" id="event-switcher-dropdown">
-  <!-- Mobile drag handle -->
-  <div style="display:none;justify-content:center;padding:10px 0 4px" id="esd-handle-row">
-    <div style="width:36px;height:4px;border-radius:2px;background:var(--border2)"></div>
-  </div>
-  <div class="esd-header">
-    <span class="esd-header-label">Events</span>
-    <button onclick="closeEventSwitcher()" style="background:none;border:none;cursor:pointer;color:var(--dim);padding:4px;border-radius:6px;display:grid;place-items:center;-webkit-tap-highlight-color:transparent" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--dim)'">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-    </button>
-  </div>
-  <div class="esd-list" id="esd-list" style="max-height:50vh;overflow-y:auto"></div>
-  <div class="esd-footer">
-    <button class="esd-new-btn" onclick="closeEventSwitcher();openNewEventModal()">
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      New Event
-    </button>
-  </div>
-</div>
 </body>
 </html>`);
   printWin.document.close();
@@ -8077,5 +8053,28 @@ window._SCHED_DEFAULT = JSON.parse(JSON.stringify(DMT_CONFIG.stages));
 window._CREW_DEFAULT  = JSON.parse(JSON.stringify(DMT_CONFIG.crew));
 </script>
 
+<!-- ESD backdrop (mobile only) -->
+<div id="esd-backdrop" style="display:none;position:fixed;inset:0;background:rgba(15,21,35,.45);z-index:999;backdrop-filter:blur(2px)" onclick="event.stopPropagation();closeEventSwitcher()"></div>
+
+<!-- EVENT SWITCHER DROPDOWN -->
+<div class="event-switcher-dropdown" id="event-switcher-dropdown">
+  <!-- Mobile drag handle -->
+  <div style="display:none;justify-content:center;padding:10px 0 4px" id="esd-handle-row">
+    <div style="width:36px;height:4px;border-radius:2px;background:var(--border2)"></div>
+  </div>
+  <div class="esd-header">
+    <span class="esd-header-label">Events</span>
+    <button onclick="closeEventSwitcher()" style="background:none;border:none;cursor:pointer;color:var(--dim);padding:4px;border-radius:6px;display:grid;place-items:center;-webkit-tap-highlight-color:transparent" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--dim)'">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="esd-list" id="esd-list" style="max-height:50vh;overflow-y:auto"></div>
+  <div class="esd-footer">
+    <button class="esd-new-btn" onclick="closeEventSwitcher();openNewEventModal()">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      New Event
+    </button>
+  </div>
+</div>
 </body>
 </html>
