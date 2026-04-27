@@ -1774,65 +1774,66 @@ tbody tr:hover .row-actions{opacity:1}
 
         <!-- Tab: CAMERAS -->
         <div class="stab-panel" id="stabpanel-cameras">
-          <div style="max-width:620px;margin:0 auto">
+          <div style="max-width:680px">
             <div class="form-shell">
-              <h2>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
-                Camera / Device Source
-              </h2>
-              <p style="font-size:12px;color:var(--dim);font-family:var(--mono);margin-bottom:14px;line-height:1.6">
-                Define cameras and devices used at this event. These will appear as dropdown options in the transfer input form.
-              </p>
 
-              <!-- Locked view -->
-              <div id="camera-locked-view">
-                <div id="camera-list-locked" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px"></div>
-                <button class="submit-btn" style="background:none;border:1.5px solid var(--border2);color:var(--ink2);box-shadow:none" onclick="unlockCameras()">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                  Edit Cameras
+              <!-- Header -->
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+                <div>
+                  <h2 style="margin-bottom:3px;display:flex;align-items:center;gap:8px">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+                    Camera / Device List
+                  </h2>
+                  <div style="font-size:11px;color:var(--dim);font-family:var(--mono)" id="camera-settings-source">define cameras used at this event</div>
+                </div>
+                <div class="settings-action-btns" style="display:flex;gap:8px">
+                  <button onclick="addCamera()" class="settings-sec-btn" style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--r-sm);background:var(--surface);border:1.5px solid var(--border2);color:var(--ink2);cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:700;transition:all .12s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--ink2)'">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Add Camera
+                  </button>
+                  <button class="submit-btn settings-save-btn" style="padding:8px 16px;margin:0;font-size:12px" onclick="saveCameras()">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    Save
+                  </button>
+                </div>
+              </div>
+
+              <!-- Quick Add by Brand -->
+              <div style="margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border)">
+                <div style="font-size:10px;font-weight:700;color:var(--dim);font-family:var(--mono);letter-spacing:.07em;text-transform:uppercase;margin-bottom:8px">Quick Add by Brand</div>
+                <select id="cam-brand-select" onchange="_camBrandClick(this.value)"
+                  style="width:100%;background:var(--bg);border:1.5px solid var(--border2);color:var(--ink);padding:9px 12px;border-radius:var(--r-sm);font-family:var(--sans);font-size:13px;outline:none;cursor:pointer;transition:border-color .15s;appearance:none;-webkit-appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238892b0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px"
+                  onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'">
+                  <option value="">— Select brand to browse models —</option>
+                </select>
+                <!-- Model chips panel -->
+                <div id="cam-model-suggestions" style="display:none;background:var(--accent-bg);border:1.5px solid rgba(0,180,216,.2);border-radius:var(--r-sm);padding:12px;margin-top:10px">
+                  <div style="font-size:10px;font-weight:700;color:var(--accent);font-family:var(--mono);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
+                    <span id="cam-model-brand-label">MODELS</span>
+                    <span style="color:var(--dim);font-weight:400">click to add</span>
+                  </div>
+                  <div id="cam-model-list" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+                </div>
+              </div>
+
+              <!-- Camera list -->
+              <div id="camera-list-edit" style="display:flex;flex-direction:column;gap:5px;margin-bottom:16px"></div>
+
+              <!-- Empty state -->
+              <div id="camera-empty-state" style="display:none;text-align:center;padding:24px;background:var(--bg);border-radius:var(--r-sm);border:1px dashed var(--border2);margin-bottom:16px">
+                <div style="font-size:12px;color:var(--dim);font-family:var(--mono);margin-bottom:10px">No cameras yet. Add via brand picker or manually.</div>
+                <button onclick="addCamera()" style="padding:7px 16px;border-radius:var(--r-sm);background:var(--accent);border:none;color:#fff;cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:700">+ Add Camera</button>
+              </div>
+
+              <!-- Footer -->
+              <div style="padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+                <button onclick="addCamera()" class="add-device-btn" style="border:1.5px dashed var(--border2)">+ Add manually</button>
+                <button onclick="resetCamerasToDefault()" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--dim);font-family:var(--mono);display:flex;align-items:center;gap:5px;padding:4px 0" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--dim)'">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+                  Reset to defaults
                 </button>
               </div>
 
-              <!-- Edit view -->
-              <div id="camera-edit-view" style="display:none">
-
-                <!-- Brand dropdown + model suggestions -->
-                <div style="margin-bottom:16px">
-                  <div style="font-size:10px;font-weight:700;color:var(--dim);font-family:var(--mono);letter-spacing:.07em;text-transform:uppercase;margin-bottom:8px">Quick Add by Brand</div>
-                  <div style="display:flex;gap:8px;align-items:center">
-                    <select id="cam-brand-select" onchange="_camBrandClick(this.value)"
-                      style="flex:1;background:var(--bg);border:1.5px solid var(--border2);color:var(--ink);padding:9px 12px;border-radius:var(--r-sm);font-family:var(--sans);font-size:13px;outline:none;cursor:pointer;transition:border-color .15s"
-                      onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'">
-                      <option value="">— Select brand —</option>
-                    </select>
-                  </div>
-                  <!-- Model chips panel -->
-                  <div id="cam-model-suggestions" style="display:none;background:var(--accent-bg);border:1.5px solid rgba(0,180,216,.2);border-radius:var(--r-sm);padding:12px;margin-top:10px">
-                    <div style="font-size:10px;font-weight:700;color:var(--accent);font-family:var(--mono);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
-                      <span id="cam-model-brand-label">MODELS</span>
-                      <span style="color:var(--dim);font-weight:400">click to add</span>
-                    </div>
-                    <div id="cam-model-list" style="display:flex;flex-wrap:wrap;gap:6px"></div>
-                  </div>
-                </div>
-
-                <!-- Current camera list -->
-                <div style="font-size:10px;font-weight:700;color:var(--dim);font-family:var(--mono);letter-spacing:.07em;text-transform:uppercase;margin-bottom:8px">Your Camera / Device List</div>
-                <div id="camera-list-edit" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px"></div>
-
-                <!-- Manual add -->
-                <button class="add-device-btn" onclick="addCamera()" style="margin-bottom:14px">+ Add manually</button>
-
-                <div style="display:flex;gap:8px">
-                  <button onclick="saveCameras()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 14px;border-radius:var(--r-sm);background:var(--grad);border:none;cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:700;color:#fff;box-shadow:0 4px 14px var(--grad-shadow);white-space:nowrap;transition:opacity .15s" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                    Save & Lock
-                  </button>
-                  <button onclick="cancelEditCameras()" style="padding:10px 16px;border-radius:var(--r-sm);background:none;border:1.5px solid var(--border2);color:var(--ink2);cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:600;white-space:nowrap;transition:all .12s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--ink2)'">
-                    Cancel
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -1916,6 +1917,42 @@ tbody tr:hover .row-actions{opacity:1}
 
         <!-- Stats bar -->
         <div id="export-stats-bar" style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap"></div>
+
+        <!-- Google Sheet Embed -->
+        <div style="background:var(--surface);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--card2);gap:10px;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:8px">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+              <span style="font-size:12px;font-weight:700;color:var(--ink)">Google Sheet Embed</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <div id="sheet-url-wrap" style="display:flex;gap:6px;align-items:center">
+                <input type="url" id="sheet-url-input" placeholder="Paste Google Sheet publish URL…"
+                  style="width:320px;padding:6px 10px;border-radius:var(--r-sm);border:1.5px solid var(--border2);background:var(--bg);font-family:var(--mono);font-size:11px;color:var(--ink);outline:none;transition:border-color .15s"
+                  onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'"
+                  onkeydown="if(event.key==='Enter')saveSheetUrl()">
+                <button onclick="saveSheetUrl()" style="padding:6px 12px;border-radius:var(--r-sm);background:var(--accent);border:none;color:#fff;cursor:pointer;font-size:11px;font-weight:700;font-family:var(--sans);white-space:nowrap;transition:opacity .12s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Embed</button>
+              </div>
+              <button id="sheet-clear-btn" onclick="clearSheetUrl()" style="display:none;padding:6px 10px;border-radius:var(--r-sm);background:none;border:1px solid var(--border2);color:var(--dim);cursor:pointer;font-size:11px;font-family:var(--sans);transition:all .12s" onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--dim)'">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                Clear
+              </button>
+            </div>
+          </div>
+          <!-- Hint -->
+          <div id="sheet-hint" style="padding:10px 16px;background:var(--green-bg);border-bottom:1px solid rgba(12,169,122,.15);font-size:11px;font-family:var(--mono);color:var(--green);display:flex;align-items:flex-start;gap:8px">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span>Di Google Sheets: <strong>File → Share → Publish to web</strong> → pilih sheet → format <strong>Web page</strong> → klik <strong>Publish</strong> → copy URL-nya dan paste di atas.</span>
+          </div>
+          <!-- Iframe container -->
+          <div id="sheet-iframe-wrap" style="display:none">
+            <iframe id="sheet-iframe" src="" style="width:100%;height:500px;border:none;display:block" loading="lazy" allowfullscreen></iframe>
+          </div>
+          <!-- Empty state -->
+          <div id="sheet-empty" style="padding:40px;text-align:center;color:var(--dim);font-size:12px;font-family:var(--mono)">
+            Belum ada Google Sheet yang di-embed. Paste publish URL di atas untuk menampilkan sheet di sini.
+          </div>
+        </div>
 
         <!-- Table view -->
         <div style="background:var(--surface);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:16px">
@@ -5349,8 +5386,62 @@ function renderSheetPage(){
   const ev  = getActiveEvent();
   const sub = document.getElementById('sheets-page-sub');
   if(sub && ev) sub.textContent = `Transfer data · ${ev.name||''}`;
+  _loadSheetEmbed();
   exportRefresh();
 }
+
+/* == GOOGLE SHEET EMBED == */
+function _sheetUrlKey(){ return _uk('dmt_sheet_url_') + (getActiveEventId()||'default'); }
+
+function _loadSheetEmbed(){
+  const url = localStorage.getItem(_sheetUrlKey()) || '';
+  const input      = document.getElementById('sheet-url-input');
+  const iframeWrap = document.getElementById('sheet-iframe-wrap');
+  const iframe     = document.getElementById('sheet-iframe');
+  const empty      = document.getElementById('sheet-empty');
+  const clearBtn   = document.getElementById('sheet-clear-btn');
+  const hint       = document.getElementById('sheet-hint');
+  if(!input) return;
+  if(url){
+    input.value = url;
+    if(iframe) iframe.src = url;
+    if(iframeWrap) iframeWrap.style.display = 'block';
+    if(empty)      empty.style.display      = 'none';
+    if(clearBtn)   clearBtn.style.display   = 'inline-flex';
+    if(hint)       hint.style.display       = 'none';
+  } else {
+    input.value = '';
+    if(iframe)     iframe.src               = '';
+    if(iframeWrap) iframeWrap.style.display = 'none';
+    if(empty)      empty.style.display      = 'block';
+    if(clearBtn)   clearBtn.style.display   = 'none';
+    if(hint)       hint.style.display       = 'flex';
+  }
+}
+
+function saveSheetUrl(){
+  const input = document.getElementById('sheet-url-input');
+  if(!input) return;
+  let url = input.value.trim();
+  if(!url){ toast('Paste URL Google Sheet terlebih dahulu','err'); return; }
+  // Accept Google Sheet published URL or regular URL
+  if(!url.startsWith('http')){ toast('URL tidak valid','err'); return; }
+  // Convert /edit or /pub?... to embeddable URL if needed
+  if(url.includes('docs.google.com/spreadsheets') && !url.includes('/pubhtml') && !url.includes('/pub?')){
+    url = url.replace(/\/(edit|view)(.*)?$/, '/pubhtml');
+  }
+  localStorage.setItem(_sheetUrlKey(), url);
+  input.value = url;
+  _loadSheetEmbed();
+  toast('Google Sheet berhasil di-embed','ok');
+}
+
+function clearSheetUrl(){
+  localStorage.removeItem(_sheetUrlKey());
+  _loadSheetEmbed();
+  toast('Embed dihapus','ok');
+}
+
 
 
 /* == CAMERA / DEVICE SOURCE SETTINGS == */
@@ -5372,22 +5463,7 @@ function setCameras(arr, evId){
 function renderCameraSettings(){
   const cams = getCameras();
 
-  // Locked view
-  const lockedEl = document.getElementById('camera-list-locked');
-  if(lockedEl){
-    if(cams.length){
-      lockedEl.innerHTML = cams.map(c=>`
-        <div style="padding:7px 10px;border-radius:var(--r-sm);background:var(--bg);border:1px solid var(--border);font-family:var(--mono);font-size:11px;display:flex;align-items:center;gap:8px;color:var(--ink2)">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
-          <span style="flex:1">${x(c)}</span>
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-        </div>`).join('');
-    } else {
-      lockedEl.innerHTML = '<div style="font-size:12px;color:var(--dim);font-family:var(--mono);padding:8px 0">No cameras yet. Click Edit Cameras.</div>';
-    }
-  }
-
-  // Edit view
+  // Camera list (always-edit, like crew)
   const editEl = document.getElementById('camera-list-edit');
   if(editEl){
     editEl.innerHTML = cams.map((c,i)=>`
@@ -5399,17 +5475,15 @@ function renderCameraSettings(){
       </div>`).join('');
   }
 
+  // Empty state
+  const emptyEl = document.getElementById('camera-empty-state');
+  if(emptyEl) emptyEl.style.display = cams.length ? 'none' : 'block';
+
   // Update badge
   const badge = document.getElementById('stab-cameras-badge');
   if(badge) badge.textContent = cams.length ? cams.length : '';
 
-  buildCameraDropdown();
-}
-
-function unlockCameras(){
-  document.getElementById('camera-locked-view').style.display = 'none';
-  document.getElementById('camera-edit-view').style.display = 'block';
-  // Populate brand dropdown
+  // Populate brand dropdown if not yet populated
   const sel = document.getElementById('cam-brand-select');
   if(sel && sel.options.length <= 1){
     Object.keys(CAMERA_DB).forEach(b => {
@@ -5418,15 +5492,13 @@ function unlockCameras(){
       sel.appendChild(o);
     });
   }
-  const sug = document.getElementById('cam-model-suggestions');
-  if(sug) sug.style.display = 'none';
-  renderCameraSettings();
+
+  buildCameraDropdown();
 }
-function cancelEditCameras(){
-  document.getElementById('camera-edit-view').style.display = 'none';
-  document.getElementById('camera-locked-view').style.display = 'block';
-  renderCameraSettings();
-}
+
+function unlockCameras(){ renderCameraSettings(); }
+function cancelEditCameras(){ renderCameraSettings(); }
+
 function addCamera(){
   const cams = getCameras();
   cams.push('');
@@ -5448,14 +5520,12 @@ function removeCamera(i){
 
 async function saveCameras(){
   const editEl = document.getElementById('camera-list-edit');
-  const inputs = editEl ? editEl.querySelectorAll('input[type="text"]') : document.querySelectorAll('[id^="cam-"]');
+  const inputs = editEl ? editEl.querySelectorAll('input[type="text"]') : [];
   const cams   = [...inputs].map(inp => inp.value.trim()).filter(Boolean);
   // Deduplicate
   const unique = [...new Set(cams)];
   setCameras(unique);
   buildCameraDropdown();
-  document.getElementById('camera-edit-view').style.display   = 'none';
-  document.getElementById('camera-locked-view').style.display = 'block';
   renderCameraSettings();
   // Sync to Supabase app_config
   try{
@@ -5465,10 +5535,25 @@ async function saveCameras(){
       workspace_id: getWorkspaceId() || null,
       value:        unique
     }, 'key,event_id');
-    toast(`${unique.length} cameras saved & synced (ok)`, 'ok');
+    toast(`${unique.length} camera${unique.length !== 1 ? 's' : ''} saved`, 'ok');
   }catch{
-    toast(`${unique.length} cameras saved locally`, 'ok');
+    toast(`${unique.length} camera${unique.length !== 1 ? 's' : ''} saved locally`, 'ok');
   }
+}
+
+async function resetCamerasToDefault(){
+  const ok = await showConfirm({
+    title: 'Reset Cameras',
+    sub:   'Camera list will be cleared',
+    body:  'Reset camera list to empty?',
+    okLabel: 'Reset'
+  });
+  if(!ok) return;
+  setCameras([]);
+  buildCameraDropdown();
+  renderCameraSettings();
+  toast('Camera list reset', 'ok');
+  try{ await sbUpsert('app_config',{key:'cameras',event_id:getActiveEventId(),workspace_id:getWorkspaceId()||null,value:[]},'key,event_id'); }catch{}
 }
 
 
