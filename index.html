@@ -2725,6 +2725,7 @@ async function sbInsert(table, data){
 }
 
 async function sbUpdate(table, match, data){
+  sbGuardWrite('UPDATE '+table);
   const q=new URLSearchParams(match).toString();
   const r=await fetch(`${SB_URL}/rest/v1/${table}?${q}`,{
     method:'PATCH', headers:sbHeadersAuth(), body:JSON.stringify(data)
@@ -2734,6 +2735,7 @@ async function sbUpdate(table, match, data){
 }
 
 async function sbDelete(table, match){
+  sbGuardWrite('DELETE '+table);
   // Empty match {} = delete all rows; Supabase requires at least one filter
   const effectiveMatch=Object.keys(match).length===0?{'id':'gte.0'}:match;
   const q=new URLSearchParams(effectiveMatch).toString();
@@ -2745,6 +2747,7 @@ async function sbDelete(table, match){
 }
 
 async function sbUpsert(table, data, onConflict){
+  sbGuardWrite('UPSERT '+table);
   const url=`${SB_URL}/rest/v1/${table}${onConflict?'?on_conflict='+onConflict:''}`;
   const r=await fetch(url,{
     method:'POST',
@@ -2792,6 +2795,7 @@ async function sbLoadTransfers(eventId){
 
 // INSERT one transfer row
 async function sbSubmitTransfer(payload){
+  sbGuardWrite('INSERT transfers');
   return wsInsert('transfers',{
     user_id:      _authUserId,
     event_id:     payload.eventId,
@@ -3020,7 +3024,8 @@ function doLoginAsGuest(){
   var first = Object.keys(guests)[0];
   if(!first){ toast('No guest accounts.','err'); return; }
   var g = guests[first];
-  var sess = {username:first, role:g.role||'data_manager', displayName:g.displayName||'Guest', expires:Date.now()+SESSION_TTL};
+  // Security: ignore g.role from config — always assign 'guest' role
+  var sess = {username:first, role:'guest', displayName:g.displayName||'Guest', expires:Date.now()+SESSION_TTL};
   saveSession(sess);
   bootApp(sess);
 }
@@ -3240,7 +3245,9 @@ let _authUserId = null;
 function sbHeadersAuth(extra={}){
   const token = _authToken || localStorage.getItem('mt_token');
   if(!token){
-    console.warn('[sbHeadersAuth] no auth token — falling back to anon key. Some requests may return 401.');
+    // No auth token — use anon key only for read operations
+    // Write operations are blocked by sbGuardWrite() before reaching here
+    console.warn('[sbHeadersAuth] no auth token — using anon key (read-only safe)');
     return {'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=representation',...extra};
   }
   return {'apikey':SB_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json','Prefer':'return=representation',...extra};
@@ -3255,10 +3262,13 @@ function getWorkspaceName(){ return _wsName||'My Workspace'; }
 function getWorkspaceRole(){ return _wsRole||'member'; }
 
 function setWorkspace(id,name,role){
-  _wsId=id;_wsName=name;_wsRole=role;
+  // Security: only allow known workspace roles
+  const ALLOWED_WS_ROLES=['owner','admin','member'];
+  const safeRole=ALLOWED_WS_ROLES.includes(role)?role:'member';
+  _wsId=id;_wsName=name;_wsRole=safeRole;
   localStorage.setItem(WS_KEY+'_id',id||'');
   localStorage.setItem(WS_KEY+'_name',name||'');
-  localStorage.setItem(WS_KEY+'_role',role||'member');
+  localStorage.setItem(WS_KEY+'_role',safeRole);
   // Update UI elements
   ['ws-name-display'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=name||'--';});
   const wsInput=document.getElementById('ws-name-input');if(wsInput)wsInput.value=name||'';
@@ -3285,17 +3295,20 @@ async function wsGet(table,params={}){
   return r.json();
 }
 async function wsInsert(table,data){
+  sbGuardWrite('WS INSERT '+table);
   const r=await fetch(`${SB_URL}/rest/v1/${table}`,{method:'POST',headers:sbHeadersAuth(),body:JSON.stringify(data)});
   if(!r.ok){const t=await r.text();throw new Error(`INSERT ${table}: ${r.status} ${t}`);}
   return r.json();
 }
 async function wsUpdate(table,match,data){
+  sbGuardWrite('WS UPDATE '+table);
   const q=new URLSearchParams(match).toString();
   const r=await fetch(`${SB_URL}/rest/v1/${table}?${q}`,{method:'PATCH',headers:sbHeadersAuth(),body:JSON.stringify(data)});
   if(!r.ok){const t=await r.text();throw new Error(`UPDATE ${table}: ${r.status}`);}
   return r.json();
 }
 async function wsDelete(table,match){
+  sbGuardWrite('WS DELETE '+table);
   const q=new URLSearchParams(match).toString();
   const r=await fetch(`${SB_URL}/rest/v1/${table}?${q}`,{method:'DELETE',headers:{...sbHeadersAuth(),'Prefer':'return=minimal'}});
   if(!r.ok){const t=await r.text();throw new Error(`DELETE ${table}: ${r.status}`);}
@@ -3344,7 +3357,7 @@ async function doRegister(){
     if(err.message?.toLowerCase().includes('already registered')||err.message?.includes('already exists')){
       showErr('This email is already registered. Try signing in.');
     } else {
-      showErr(err.message||'Registration failed. Try again.');
+      showErr(x(err.message)||'Registration failed. Try again.');
     }
   }finally{
     btn.disabled=false;
@@ -3510,12 +3523,13 @@ async function doLogin(){
   const btn=document.getElementById('login-btn');
   if(!emailOrUser||!pass){showLoginErr('Email and password cannot be empty.');return;}
 
-  // Guest login
+  // Guest login — role ALWAYS forced to 'guest', never from config
   if(DMT_CONFIG.enableGuestAccess){
     const guestUsers=DMT_CONFIG.guestUsers||{};
     if(guestUsers[emailOrUser]&&guestUsers[emailOrUser].password===pass){
       const g=guestUsers[emailOrUser];
-      const sess={username:emailOrUser,role:g.role||'data_manager',displayName:g.displayName||emailOrUser,expires:Date.now()+SESSION_TTL};
+      // Security: ignore g.role from config — always assign 'guest' role
+      const sess={username:emailOrUser,role:'guest',displayName:g.displayName||emailOrUser,expires:Date.now()+SESSION_TTL};
       saveSession(sess);bootApp(sess);return;
     }
   }
@@ -3662,12 +3676,12 @@ async function doAddMember(){
     closeAddMemberModal();
     toast('Invite recorded. Ask '+email+' to register then request workspace access.','ok');
     loadMembers();
-  }catch(err){toast('Failed: '+err.message,'err');}
+  }catch(err){toast('Failed: '+x(err.message),'err');}
 }
 
 async function changeMemberRole(memberId,newRole){
   try{await wsUpdate('workspace_members',{'id':'eq.'+memberId},{role:newRole});loadMembers();toast('Role updated','ok');}
-  catch(err){toast('Failed: '+err.message,'err');}
+  catch(err){toast('Failed: '+x(err.message),'err');}
 }
 async function removeMember(memberId){
   const ok = await showConfirm({
@@ -3678,7 +3692,7 @@ async function removeMember(memberId){
   });
   if(!ok)return;
   try{await wsDelete('workspace_members',{'id':'eq.'+memberId});loadMembers();toast('Member removed','ok');}
-  catch(err){toast('Failed: '+err.message,'err');}
+  catch(err){toast('Failed: '+x(err.message),'err');}
 }
 
 async function saveWorkspaceName(){
@@ -3691,7 +3705,7 @@ async function saveWorkspaceName(){
     // Update session
     const sess=loadSession();if(sess){sess.workspaceName=name;saveSession(sess);}
     toast('(ok) Workspace name updated','ok');
-  }catch(err){toast('Failed: '+err.message,'err');}
+  }catch(err){toast('Failed: '+x(err.message),'err');}
 }
 
 function copyWsId(){
@@ -3783,7 +3797,21 @@ function showLoginErr(msg){
   setTimeout(()=>el.classList.remove('show'),4000);
 }
 function saveSession(s){localStorage.setItem(SESSION_KEY,JSON.stringify(s));}
-function loadSession(){try{const r=localStorage.getItem(SESSION_KEY);if(!r)return null;const s=JSON.parse(r);if(Date.now()>s.expires){localStorage.removeItem(SESSION_KEY);return null;}return s;}catch{return null;}}
+function loadSession(){
+  try{
+    const r=localStorage.getItem(SESSION_KEY);
+    if(!r)return null;
+    const s=JSON.parse(r);
+    if(Date.now()>s.expires){localStorage.removeItem(SESSION_KEY);return null;}
+    // Security: sanitize role — only allow known values; default to 'guest' if tampered
+    const ALLOWED_ROLES=['data_manager','guest'];
+    if(!ALLOWED_ROLES.includes(s.role)){
+      console.warn('[security] Invalid role in session, forcing guest');
+      s.role='guest';
+    }
+    return s;
+  }catch{return null;}
+}
 function _clearAppDataIfUserChanged(newUserId){
   const prevUserId = localStorage.getItem('mt_last_uid');
   if(prevUserId && prevUserId !== newUserId){
@@ -5342,7 +5370,7 @@ function testSupabaseConnection(){
       const isAuth = err.message&&(err.message.includes('401')||err.message.includes('authenticated'));
       const msg = isAuth
         ? 'Auth error (401) — token expired. Please sign out and sign back in.'
-        : 'Connection failed: '+err.message;
+        : 'Connection failed: '+x(err.message);
       toast(msg,'err');
       btn.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Test Connection';
       btn.disabled=false;
@@ -6109,7 +6137,7 @@ document.getElementById('mainForm').addEventListener('submit',async e=>{
     setTimeout(()=>loadData(),2500);
   }catch(err){
     console.error('[MediaTrack submit error]',err,payload);
-    toast('Failed: '+err.message,'err');
+    toast('Failed: '+x(err.message),'err');
   }
   finally{btn.disabled=false;btn.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg> Record Transfer';}
 });
@@ -6173,7 +6201,7 @@ async function loadData(silent=false){
       if(tbody){tbody.classList.remove('tbl-flash-anim');void tbody.offsetWidth;tbody.classList.add('tbl-flash-anim');}
     }
   }catch(err){
-    if(!silent){document.getElementById('tbl-body').innerHTML='<tr class="tbl-msg"><td colspan="11">(!) Failed to load. Check Supabase connection.</td></tr>';toast('Failed to load data: '+err.message,'err');}
+    if(!silent){document.getElementById('tbl-body').innerHTML='<tr class="tbl-msg"><td colspan="11">(!) Failed to load. Check Supabase connection.</td></tr>';toast('Failed to load data: '+x(err.message),'err');}
     _setFreshnessStale();
   }finally{
     if(refreshBtn)refreshBtn.classList.remove('spinning');
@@ -7129,12 +7157,30 @@ function toast(msg,type='ok'){
   const ico=type==='ok'
     ?'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10" fill="rgba(12,169,122,.15)"/><polyline points="20 6 9 17 4 12"/></svg>'
     :'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10" fill="rgba(232,56,79,.12)"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
-  t.innerHTML=ico+msg;t.className='toast '+type;t.classList.add('show');
+  // Always escape msg to prevent XSS via error messages or user data
+  const safeMsg = String(msg).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  t.innerHTML=ico+safeMsg;t.className='toast '+type;t.classList.add('show');
   clearTimeout(t._timer);
   t._timer=setTimeout(()=>t.classList.remove('show'),4500);
 }
 const v=id=>document.getElementById(id)?.value?.trim()||'';
 const x=s=>s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'):'';
+
+/* ── Security helpers ── */
+// sbGuardWrite: call before any Supabase write to prevent guest/unauthenticated writes
+// Primary enforcement is Supabase RLS; this is client-side defense-in-depth
+function sbGuardWrite(label=''){
+  if(!_authToken){
+    toast('Not authenticated. Please log in again.','err');
+    console.warn('[security] sbGuardWrite blocked unauthenticated write'+( label?' ('+label+')':'' ));
+    throw new Error('UNAUTHENTICATED_WRITE');
+  }
+  if(isGuest()){
+    toast('Guest mode: read-only access.','err');
+    console.warn('[security] sbGuardWrite blocked guest write'+( label?' ('+label+')':'' ));
+    throw new Error('GUEST_WRITE_BLOCKED');
+  }
+}
 
 /* == RESET == */
 let _resetType=null;
@@ -7283,7 +7329,7 @@ async function executeReset(){
       toast('(ok) Transfer log cleared','ok');
     }
   }catch(err){
-    toast('Reset failed: '+err.message,'err');
+    toast('Reset failed: '+x(err.message),'err');
   }finally{
     btn.disabled=false;btn.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:4px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>Yes, Reset';
   }
@@ -7361,7 +7407,7 @@ async function saveEdit(){
     toast('(ok) Data updated successfully','ok');
     setTimeout(()=>loadData(),2500);
   }catch(err){
-    toast('Update failed: '+err.message,'err');
+    toast('Update failed: '+x(err.message),'err');
   }finally{
     btn.disabled=false;btn.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:4px"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Save';
   }
@@ -7389,7 +7435,7 @@ async function deleteRow(idx){
     renderTable();updateStats();renderCrewGrid('crew-grid',rows);renderStorageStats();
     toast('(ok) Data deleted','ok');
   }catch(err){
-    toast('Delete failed: '+err.message,'err');
+    toast('Delete failed: '+x(err.message),'err');
   }
 }
 
