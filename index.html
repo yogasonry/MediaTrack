@@ -1799,17 +1799,23 @@ tbody tr:hover .row-actions{opacity:1}
               <!-- Edit view -->
               <div id="camera-edit-view" style="display:none">
 
-                <!-- Brand picker — rendered by JS -->
-                <div style="margin-bottom:14px">
+                <!-- Brand dropdown + model suggestions -->
+                <div style="margin-bottom:16px">
                   <div style="font-size:10px;font-weight:700;color:var(--dim);font-family:var(--mono);letter-spacing:.07em;text-transform:uppercase;margin-bottom:8px">Quick Add by Brand</div>
-                  <div id="cam-brand-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px"></div>
-                  <!-- Model suggestions panel -->
-                  <div id="cam-model-suggestions" style="display:none;background:var(--bg);border:1.5px solid var(--accent);border-radius:var(--r-sm);padding:10px 12px;margin-bottom:10px">
-                    <div style="font-size:10px;font-weight:700;color:var(--accent);font-family:var(--mono);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
-                      <span id="cam-model-brand-label">SELECT MODEL</span>
-                      <button onclick="document.getElementById('cam-model-suggestions').style.display='none';_camResetBrands()" style="background:none;border:none;cursor:pointer;color:var(--dim);font-size:11px;font-family:var(--mono);padding:0">✕ close</button>
+                  <div style="display:flex;gap:8px;align-items:center">
+                    <select id="cam-brand-select" onchange="_camBrandClick(this.value)"
+                      style="flex:1;background:var(--bg);border:1.5px solid var(--border2);color:var(--ink);padding:9px 12px;border-radius:var(--r-sm);font-family:var(--sans);font-size:13px;outline:none;cursor:pointer;transition:border-color .15s"
+                      onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'">
+                      <option value="">— Select brand —</option>
+                    </select>
+                  </div>
+                  <!-- Model chips panel -->
+                  <div id="cam-model-suggestions" style="display:none;background:var(--accent-bg);border:1.5px solid rgba(0,180,216,.2);border-radius:var(--r-sm);padding:12px;margin-top:10px">
+                    <div style="font-size:10px;font-weight:700;color:var(--accent);font-family:var(--mono);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
+                      <span id="cam-model-brand-label">MODELS</span>
+                      <span style="color:var(--dim);font-weight:400">click to add</span>
                     </div>
-                    <div id="cam-model-list" style="display:flex;flex-wrap:wrap;gap:5px"></div>
+                    <div id="cam-model-list" style="display:flex;flex-wrap:wrap;gap:6px"></div>
                   </div>
                 </div>
 
@@ -3945,7 +3951,7 @@ function buildScheduleFull(){
   tabsEl.innerHTML=_SCHED_STAGE_KEYS.map((stage,i)=>{
     const clr=_SCHED_PALETTE[i%_SCHED_PALETTE.length];
     const tabCls=i===0?(_SCHED_TAB_ACTIVE[0]||'active-main'):'';
-    return `<button class="sched-tab ${tabCls}" id="stab-${stage}" onclick="switchSchedTab(${JSON.stringify(stage)},this)">
+    return `<button class="sched-tab ${tabCls}" id="sched-stab-${stage}" onclick="switchSchedTab(${JSON.stringify(stage)},this)">
       <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${clr};margin-right:6px;vertical-align:middle"></span>${stage}
     </button>`;
   }).join('');
@@ -5404,18 +5410,14 @@ function renderCameraSettings(){
 function unlockCameras(){
   document.getElementById('camera-locked-view').style.display = 'none';
   document.getElementById('camera-edit-view').style.display = 'block';
-  // Build brand chips via JS (not template literal in HTML)
-  const chipsEl = document.getElementById('cam-brand-chips');
-  if(chipsEl && !chipsEl.hasChildNodes()){
-    const brands = Object.keys(CAMERA_DB);
-    chipsEl.innerHTML = brands.map(b => `
-      <button type="button" id="cam-brand-${b}" data-active="0"
-        onclick="_camBrandClick('${b}')"
-        style="padding:5px 12px;border-radius:20px;border:1.5px solid var(--border2);background:var(--bg);color:var(--ink2);cursor:pointer;font-size:11px;font-weight:700;font-family:var(--mono);transition:all .12s"
-        onmouseover="if(this.dataset.active!=='1'){this.style.borderColor='var(--accent)';this.style.color='var(--accent)';}"
-        onmouseout="if(this.dataset.active!=='1'){this.style.borderColor='var(--border2)';this.style.color='var(--ink2)';}">
-        ${b}
-      </button>`).join('');
+  // Populate brand dropdown
+  const sel = document.getElementById('cam-brand-select');
+  if(sel && sel.options.length <= 1){
+    Object.keys(CAMERA_DB).forEach(b => {
+      const o = document.createElement('option');
+      o.value = b; o.textContent = b;
+      sel.appendChild(o);
+    });
   }
   const sug = document.getElementById('cam-model-suggestions');
   if(sug) sug.style.display = 'none';
@@ -5431,9 +5433,10 @@ function addCamera(){
   cams.push('');
   setCameras(cams);
   renderCameraSettings();
-  // Focus last input
+  // Focus last input — only target camera entry inputs inside camera-list-edit
   setTimeout(()=>{
-    const inputs = document.querySelectorAll('[id^="cam-"]');
+    const editEl = document.getElementById('camera-list-edit');
+    const inputs = editEl ? editEl.querySelectorAll('input[type="text"]') : [];
     inputs[inputs.length - 1]?.focus();
   }, 50);
 }
@@ -5445,7 +5448,8 @@ function removeCamera(i){
 }
 
 async function saveCameras(){
-  const inputs = document.querySelectorAll('[id^="cam-"]');
+  const editEl = document.getElementById('camera-list-edit');
+  const inputs = editEl ? editEl.querySelectorAll('input[type="text"]') : document.querySelectorAll('[id^="cam-"]');
   const cams   = [...inputs].map(inp => inp.value.trim()).filter(Boolean);
   // Deduplicate
   const unique = [...new Set(cams)];
@@ -5545,36 +5549,23 @@ const CAMERA_DB = {
 };
 
 function _camBrandClick(brand){
-  // Toggle brand chip active state
-  const allBtns = document.querySelectorAll('[id^="cam-brand-"]');
-  allBtns.forEach(b=>{
-    b.dataset.active='0';
-    b.style.background='var(--bg)';
-    b.style.borderColor='var(--border2)';
-    b.style.color='var(--ink2)';
-  });
-  const btn = document.getElementById('cam-brand-'+brand);
-  if(btn){
-    btn.dataset.active='1';
-    btn.style.background='var(--accent-bg)';
-    btn.style.borderColor='var(--accent)';
-    btn.style.color='var(--accent)';
-  }
+  if(!brand) { document.getElementById('cam-model-suggestions').style.display='none'; return; }
   const models = CAMERA_DB[brand] || [];
   const suggestEl = document.getElementById('cam-model-suggestions');
   const labelEl = document.getElementById('cam-model-brand-label');
   const listEl = document.getElementById('cam-model-list');
   if(!suggestEl||!listEl) return;
-  labelEl.textContent = brand + ' — click to add';
+  labelEl.textContent = brand;
   const existing = getCameras();
-  listEl.innerHTML = models.map(m=>{
+  listEl.innerHTML = models.map(m => {
     const added = existing.includes(m);
-    return `<button type="button" onclick="_camModelAdd('${m.replace(/'/g,"\\'")}')" id="cam-model-btn-${m.replace(/[^a-z0-9]/gi,'_')}"
-      style="padding:5px 10px;border-radius:16px;border:1.5px solid ${added?'var(--green)':'var(--border2)'};background:${added?'rgba(10,200,120,.08)':'var(--bg)'};color:${added?'var(--green)':'var(--ink2)'};cursor:pointer;font-size:11px;font-family:var(--mono);transition:all .12s;white-space:nowrap"
-      onmouseover="if(!this.dataset.added||this.dataset.added!=='1'){this.style.borderColor='var(--accent)';this.style.color='var(--accent)';}"
-      onmouseout="if(!this.dataset.added||this.dataset.added!=='1'){this.style.borderColor='var(--border2)';this.style.color='var(--ink2)';}"
-      data-added="${added?'1':'0'}">
-      ${added?'✓ ':''} ${x(m)}
+    const sid = 'cam-model-btn-' + m.replace(/[^a-z0-9]/gi,'_');
+    return `<button type="button" id="${sid}" onclick="_camModelAdd('${m.replace(/'/g,"\\'")}')"
+      data-added="${added?'1':'0'}"
+      style="padding:5px 11px;border-radius:16px;border:1.5px solid ${added?'var(--green)':'var(--border2)'};background:${added?'rgba(10,200,120,.08)':'var(--surface)'};color:${added?'var(--green)':'var(--ink2)'};cursor:pointer;font-size:11px;font-family:var(--mono);transition:all .12s;white-space:nowrap"
+      onmouseover="if(this.dataset.added!=='1'){this.style.borderColor='var(--accent)';this.style.color='var(--accent)';this.style.background='var(--accent-bg)';}"
+      onmouseout="if(this.dataset.added!=='1'){this.style.borderColor='var(--border2)';this.style.color='var(--ink2)';this.style.background='var(--surface)';}">
+      ${added?'✓ ':'+ '}${x(m)}
     </button>`;
   }).join('');
   suggestEl.style.display = 'block';
