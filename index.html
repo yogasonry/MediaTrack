@@ -1799,24 +1799,15 @@ tbody tr:hover .row-actions{opacity:1}
               <!-- Edit view -->
               <div id="camera-edit-view" style="display:none">
 
-                <!-- Brand picker -->
+                <!-- Brand picker — rendered by JS -->
                 <div style="margin-bottom:14px">
                   <div style="font-size:10px;font-weight:700;color:var(--dim);font-family:var(--mono);letter-spacing:.07em;text-transform:uppercase;margin-bottom:8px">Quick Add by Brand</div>
-                  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px" id="cam-brand-chips">
-                    ${['RED','ARRI','SONY','PANASONIC','LUMIX','CANON','NIKON','FUJIFILM','BLACKMAGIC','DJI','GOPRO','INSTA360','FPV'].map(b=>`
-                      <button type="button" onclick="_camBrandClick('${b}')" id="cam-brand-${b}"
-                        data-active="0"
-                        style="padding:5px 12px;border-radius:20px;border:1.5px solid var(--border2);background:var(--bg);color:var(--ink2);cursor:pointer;font-size:11px;font-weight:700;font-family:var(--mono);transition:all .12s"
-                        onmouseover="if(this.dataset.active!=='1'){this.style.borderColor='var(--accent)';this.style.color='var(--accent)';}"
-                        onmouseout="if(this.dataset.active!=='1'){this.style.borderColor='var(--border2)';this.style.color='var(--ink2)';}">
-                        ${b}
-                      </button>`).join('')}
-                  </div>
-                  <!-- Model suggestions -->
+                  <div id="cam-brand-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px"></div>
+                  <!-- Model suggestions panel -->
                   <div id="cam-model-suggestions" style="display:none;background:var(--bg);border:1.5px solid var(--accent);border-radius:var(--r-sm);padding:10px 12px;margin-bottom:10px">
                     <div style="font-size:10px;font-weight:700;color:var(--accent);font-family:var(--mono);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
                       <span id="cam-model-brand-label">SELECT MODEL</span>
-                      <button onclick="document.getElementById('cam-model-suggestions').style.display='none';_camResetBrands()" style="background:none;border:none;cursor:pointer;color:var(--dim);font-size:10px;font-family:var(--mono)">✕ close</button>
+                      <button onclick="document.getElementById('cam-model-suggestions').style.display='none';_camResetBrands()" style="background:none;border:none;cursor:pointer;color:var(--dim);font-size:11px;font-family:var(--mono);padding:0">✕ close</button>
                     </div>
                     <div id="cam-model-list" style="display:flex;flex-wrap:wrap;gap:5px"></div>
                   </div>
@@ -5413,7 +5404,19 @@ function renderCameraSettings(){
 function unlockCameras(){
   document.getElementById('camera-locked-view').style.display = 'none';
   document.getElementById('camera-edit-view').style.display = 'block';
-  _camResetBrands();
+  // Build brand chips via JS (not template literal in HTML)
+  const chipsEl = document.getElementById('cam-brand-chips');
+  if(chipsEl && !chipsEl.hasChildNodes()){
+    const brands = Object.keys(CAMERA_DB);
+    chipsEl.innerHTML = brands.map(b => `
+      <button type="button" id="cam-brand-${b}" data-active="0"
+        onclick="_camBrandClick('${b}')"
+        style="padding:5px 12px;border-radius:20px;border:1.5px solid var(--border2);background:var(--bg);color:var(--ink2);cursor:pointer;font-size:11px;font-weight:700;font-family:var(--mono);transition:all .12s"
+        onmouseover="if(this.dataset.active!=='1'){this.style.borderColor='var(--accent)';this.style.color='var(--accent)';}"
+        onmouseout="if(this.dataset.active!=='1'){this.style.borderColor='var(--border2)';this.style.color='var(--ink2)';}">
+        ${b}
+      </button>`).join('');
+  }
   const sug = document.getElementById('cam-model-suggestions');
   if(sug) sug.style.display = 'none';
   renderCameraSettings();
