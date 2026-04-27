@@ -6201,7 +6201,23 @@ async function loadData(silent=false){
       if(tbody){tbody.classList.remove('tbl-flash-anim');void tbody.offsetWidth;tbody.classList.add('tbl-flash-anim');}
     }
   }catch(err){
-    if(!silent){document.getElementById('tbl-body').innerHTML='<tr class="tbl-msg"><td colspan="11">(!) Failed to load. Check Supabase connection.</td></tr>';toast('Failed to load data: '+x(err.message),'err');}
+    if(!silent){
+      const msg = err.message||'';
+      // Bedakan 500 server error vs 401 auth error — jangan paksa logout pada server error
+      const isAuth   = msg.includes('401')||msg.includes('JWT')||msg.includes('expired')||msg.includes('authenticated');
+      const isServer = msg.includes('500')||msg.includes('503')||msg.includes('recursion');
+      let userMsg;
+      if(isAuth){
+        userMsg = 'Session expired — please sign in again.';
+        setTimeout(()=>doLogout(), 2500);
+      } else if(isServer){
+        userMsg = 'Server error (500). Hubungi admin atau coba beberapa saat lagi.';
+      } else {
+        userMsg = 'Failed to load data: '+x(msg);
+      }
+      document.getElementById('tbl-body').innerHTML='<tr class="tbl-msg"><td colspan="11">(!) '+x(userMsg)+'</td></tr>';
+      toast(userMsg,'err');
+    }
     _setFreshnessStale();
   }finally{
     if(refreshBtn)refreshBtn.classList.remove('spinning');
@@ -6243,14 +6259,22 @@ async function sbRefreshToken() {
       body: JSON.stringify({ refresh_token: refreshToken })
     });
     if (!r.ok) {
-      _tokenRefreshFailCount++;
-      if (_tokenRefreshFailCount >= 2) {
-        // Two consecutive failures = truly expired, force logout
-        console.warn('[token refresh] failed x2, logging out');
-        toast('Session expired. Please sign in again.', 'err');
-        setTimeout(() => doLogout(), 2000);
+      // Hanya logout jika 401/403 (token benar2 expired/invalid)
+      // Jangan logout pada 500 (server error RLS, dsb)
+      const isAuthError = r.status === 401 || r.status === 403;
+      if(isAuthError){
+        _tokenRefreshFailCount++;
+        if (_tokenRefreshFailCount >= 2) {
+          console.warn('[token refresh] auth failed x2, logging out');
+          toast('Session expired. Please sign in again.', 'err');
+          setTimeout(() => doLogout(), 2000);
+        } else {
+          console.warn('[token refresh] auth failed ('+r.status+'), will retry next cycle');
+        }
       } else {
-        console.warn('[token refresh] failed ('+r.status+'), will retry next cycle');
+        // Server error — reset counter, jangan logout
+        console.warn('[token refresh] server error ('+r.status+') — will retry, not logging out');
+        _tokenRefreshFailCount = 0;
       }
       return;
     }
