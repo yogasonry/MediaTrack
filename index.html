@@ -975,6 +975,86 @@ tbody tr:hover .row-actions{opacity:1}
 .mt-logo-sub{fill:#999;font-family:'JetBrains Mono',monospace;font-size:43.18px}
 .mt-logo-name{fill:var(--ink,#0f1523);font-family:'Plus Jakarta Sans',sans-serif;font-size:94.01px;font-weight:800}
 
+/* ── SHEETS TAB ── */
+.sheets-card{
+  background:var(--surface);border-radius:var(--r);border:1px solid var(--border);
+  box-shadow:var(--shadow-sm);overflow:hidden;
+}
+.sheets-toolbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 16px;border-bottom:1px solid var(--border);
+  background:var(--card2);gap:10px;flex-wrap:wrap;
+}
+.sheets-toolbar-title{
+  display:flex;align-items:center;gap:8px;
+  font-size:12px;font-weight:700;color:var(--ink);flex-shrink:0;
+}
+.sheets-toolbar-controls{
+  display:flex;align-items:center;gap:6px;flex:1;min-width:0;
+}
+.sheets-url-input{
+  flex:1;min-width:0;
+  padding:6px 10px;border-radius:var(--r-sm);
+  border:1.5px solid var(--border2);background:var(--bg);
+  font-family:var(--mono);font-size:11px;color:var(--ink);
+  outline:none;transition:border-color .15s;
+}
+.sheets-toolbar-btns{
+  display:flex;align-items:center;gap:6px;flex-shrink:0;
+}
+.sheets-embed-btn{
+  padding:6px 14px;border-radius:var(--r-sm);background:var(--accent);
+  border:none;color:#fff;cursor:pointer;font-size:11px;font-weight:700;
+  font-family:var(--sans);white-space:nowrap;transition:opacity .12s;
+}
+.sheets-clear-btn{
+  padding:6px 10px;border-radius:var(--r-sm);background:none;
+  border:1px solid var(--border2);color:var(--dim);cursor:pointer;
+  font-size:11px;font-family:var(--sans);transition:all .12s;
+  display:flex;align-items:center;gap:4px;white-space:nowrap;
+}
+.sheets-iframe{
+  width:100%;height:calc(100vh - 220px);min-height:480px;
+  border:none;display:block;
+}
+
+/* Sheets mobile overrides */
+@media(max-width:700px){
+  #page-sheets{padding-bottom:0}
+  #page-sheets .page-head{margin-bottom:12px}
+
+  .sheets-toolbar{
+    flex-direction:column;align-items:stretch;
+    padding:10px 12px;gap:8px;
+  }
+  .sheets-toolbar-title{font-size:12px}
+  .sheets-toolbar-controls{
+    flex-direction:column;align-items:stretch;gap:6px;
+  }
+  .sheets-url-input{
+    width:100%;font-size:14px !important;
+    padding:10px 12px;
+  }
+  .sheets-toolbar-btns{
+    display:flex;gap:8px;
+  }
+  .sheets-embed-btn{
+    flex:1;padding:10px;font-size:13px;text-align:center;
+  }
+  .sheets-clear-btn{
+    flex:0 0 auto;padding:10px 14px;font-size:13px;
+  }
+  /* Iframe: full screen minus topbar + mobile nav + toolbar */
+  .sheets-iframe{
+    height:calc(100vh - 280px);
+    min-height:300px;
+  }
+  /* Hint text: smaller on mobile */
+  #sheet-hint{
+    font-size:11px;padding:10px 12px;
+  }
+}
+
 /* ── BOTTOM NAV BAR (mobile only) ── */
 .mobile-nav{
   display:none;
@@ -1916,23 +1996,25 @@ tbody tr:hover .row-actions{opacity:1}
         </div>
 
         <!-- Google Sheet Embed -->
-        <div style="background:var(--surface);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--shadow-sm);overflow:hidden">
+        <div class="sheets-card">
           <!-- Toolbar -->
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--card2);gap:10px;flex-wrap:wrap">
-            <div style="display:flex;align-items:center;gap:8px">
+          <div class="sheets-toolbar">
+            <div class="sheets-toolbar-title">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
-              <span style="font-size:12px;font-weight:700;color:var(--ink)">Google Spreadsheet</span>
+              <span>Google Spreadsheet</span>
             </div>
-            <div style="display:flex;align-items:center;gap:6px">
+            <div class="sheets-toolbar-controls">
               <input type="url" id="sheet-url-input" placeholder="Paste publish URL dari Google Sheets…"
-                style="width:320px;padding:6px 10px;border-radius:var(--r-sm);border:1.5px solid var(--border2);background:var(--bg);font-family:var(--mono);font-size:11px;color:var(--ink);outline:none;transition:border-color .15s"
+                class="sheets-url-input"
                 onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'"
                 onkeydown="if(event.key==='Enter')saveSheetUrl()">
-              <button onclick="saveSheetUrl()" style="padding:6px 14px;border-radius:var(--r-sm);background:var(--accent);border:none;color:#fff;cursor:pointer;font-size:11px;font-weight:700;font-family:var(--sans);white-space:nowrap;transition:opacity .12s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Embed</button>
-              <button id="sheet-clear-btn" onclick="clearSheetUrl()" style="display:none;padding:6px 10px;border-radius:var(--r-sm);background:none;border:1px solid var(--border2);color:var(--dim);cursor:pointer;font-size:11px;font-family:var(--sans);transition:all .12s" onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--dim)'">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                Clear
-              </button>
+              <div class="sheets-toolbar-btns">
+                <button onclick="saveSheetUrl()" class="sheets-embed-btn" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Embed</button>
+                <button id="sheet-clear-btn" onclick="clearSheetUrl()" class="sheets-clear-btn" style="display:none" onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--dim)'">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  Clear
+                </button>
+              </div>
             </div>
           </div>
           <!-- Hint (tampil hanya saat belum ada URL) -->
@@ -1942,7 +2024,7 @@ tbody tr:hover .row-actions{opacity:1}
           </div>
           <!-- Iframe -->
           <div id="sheet-iframe-wrap" style="display:none">
-            <iframe id="sheet-iframe" src="" style="width:100%;height:calc(100vh - 220px);min-height:480px;border:none;display:block" loading="lazy"></iframe>
+            <iframe id="sheet-iframe" src="" class="sheets-iframe" loading="lazy"></iframe>
           </div>
           <!-- Empty state -->
           <div id="sheet-empty" style="padding:64px 24px;text-align:center;color:var(--dim)">
