@@ -2981,6 +2981,14 @@ addEventListener('DOMContentLoaded',()=>{
               console.log('[boot] token refreshed OK');
             }
           } else {
+            // 400/401 = refresh token expired or invalid — force re-login
+            if(_r.status === 400 || _r.status === 401){
+              console.warn('[boot] refresh token invalid/expired — forcing re-login');
+              localStorage.removeItem(SESSION_KEY);
+              localStorage.removeItem('mt_token');
+              localStorage.removeItem('mt_refresh_token');
+              return; // stay on login screen
+            }
             console.warn('[boot] token refresh failed ('+_r.status+') — using cached token');
           }
         }catch(e){
@@ -3452,7 +3460,7 @@ function _getSbClient(){
   if(_sbClient) return _sbClient;
   if(typeof supabase !== 'undefined'){
     _sbClient = supabase.createClient(SB_URL, SB_KEY, {
-      auth: { flowType: 'pkce', detectSessionInUrl: true, persistSession: true }
+      auth: { flowType: 'pkce', detectSessionInUrl: true, persistSession: true, autoRefreshToken: true }
     });
     // Event listener — fired kapanpun session berubah (termasuk setelah PKCE exchange)
     _sbClient.auth.onAuthStateChange((event, session) => {
@@ -3482,7 +3490,7 @@ async function doGoogleSignIn(){
 
   const { error } = await sb.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: 'https://mediatrack.pages.dev/' }
+    options: { redirectTo: 'https://mediatrack.pages.dev/app' }
   });
   if(error){
     btns.forEach(b=>{ b.disabled=false; b.innerHTML=`${googleIcon} Continue with Google`; });
