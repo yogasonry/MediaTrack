@@ -66,7 +66,7 @@ nav.scrolled{box-shadow:0 2px 24px rgba(13,27,62,.07)}
 .hero{
   padding:128px 40px 0;
   background:linear-gradient(180deg,#f0f5ff 0%,var(--surface) 100%);
-  position:relative;overflow:hidden;min-height:100vh;
+  position:relative;overflow:hidden;
   display:flex;flex-direction:column;align-items:center;
 }
 .hero::before{
@@ -431,16 +431,6 @@ footer{
   .hero-sub{font-size:15px;max-width:100%}
   .hero-actions{flex-direction:column;width:100%;gap:10px}
   .btn-primary,.btn-secondary{width:100%;justify-content:center;padding:14px 20px}
-
-  /* Simplify app mockup on tablet */
-  .hero-visual{border-radius:12px 12px 0 0}
-  .hero-app{height:auto;flex-direction:column}
-  .app-sidebar{display:none}
-  .app-main{padding:16px}
-  .stats-row{grid-template-columns:repeat(3,1fr);gap:8px}
-  .stat-val{font-size:18px}
-  .table-row{grid-template-columns:40px 1fr 1fr 80px;gap:6px}
-  .table-row > div:nth-child(3){display:none}
 
   section{padding:64px 20px}
   .problem-grid{grid-template-columns:1fr 1fr;gap:12px}
