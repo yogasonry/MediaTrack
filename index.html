@@ -40,10 +40,14 @@ nav {
   background:rgba(255,255,255,.85);backdrop-filter:blur(16px);
   border-bottom:1px solid var(--border);
   padding:0 40px;height:64px;
-  display:flex;align-items:center;justify-content:space-between;
+  display:flex;align-items:center;justify-content:center;
   transition:box-shadow .2s;
 }
 nav.scrolled{box-shadow:0 2px 24px rgba(13,27,62,.07)}
+.nav-inner{
+  width:100%;max-width:1060px;
+  display:flex;align-items:center;justify-content:space-between;
+}
 .nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none}
 .nav-brand-logo{height:40px;width:auto;display:block}
 .nav-logo{width:36px;height:36px;border-radius:9px;background:var(--grad);display:grid;place-items:center;box-shadow:0 3px 12px var(--glow)}
@@ -299,6 +303,27 @@ h2.section-title{
 .usecase-card h3{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:6px}
 .usecase-card p{font-size:12px;color:var(--dim);line-height:1.6;font-family:var(--mono)}
 
+/* ─── STORY ─── */
+.story-section{display:none}
+.story-inner{max-width:720px;margin:0 auto}
+.story-header{text-align:center;margin-bottom:56px}
+.story-body{display:flex;flex-direction:column;gap:0}
+.story-block{display:flex;gap:24px;align-items:flex-start}
+.story-icon-wrap{display:flex;flex-direction:column;align-items:center;flex-shrink:0;padding-top:4px}
+.story-icon{width:48px;height:48px;border-radius:12px;display:grid;place-items:center;flex-shrink:0;z-index:1}
+.story-line{width:2px;flex:1;min-height:40px;background:var(--border);margin:8px 0}
+.story-content{padding-bottom:48px;flex:1}
+.story-label{display:inline-block;font-size:10px;font-weight:700;font-family:var(--mono);letter-spacing:.8px;text-transform:uppercase;color:var(--dim);margin-bottom:10px}
+.story-content h3{font-size:20px;font-weight:800;color:var(--navy);letter-spacing:-.5px;margin-bottom:14px;line-height:1.2}
+.story-content p{font-size:15px;color:var(--ink2);line-height:1.75;margin-bottom:12px}
+.story-content p:last-of-type{margin-bottom:0}
+.story-content em{font-style:italic;color:var(--navy);font-weight:500}
+.story-content strong{font-weight:700;color:var(--navy)}
+.story-author{display:flex;align-items:center;gap:12px;margin-top:20px;padding-top:20px;border-top:1px solid var(--border)}
+.story-avatar{width:40px;height:40px;border-radius:50%;background:var(--grad);display:grid;place-items:center;font-size:15px;font-weight:800;color:#fff;flex-shrink:0}
+.story-author-name{font-size:14px;font-weight:700;color:var(--navy)}
+.story-author-role{font-size:11px;color:var(--dim);font-family:var(--mono);margin-top:2px}
+
 /* ─── CTA ─── */
 .cta-section{
   background:var(--navy);position:relative;overflow:hidden;
@@ -450,6 +475,12 @@ footer{
   .cta-actions{flex-direction:column;align-items:center}
   .btn-white,.btn-outline-white{width:100%;max-width:320px;justify-content:center}
 
+  .story-block{gap:16px}
+  .story-icon{width:40px;height:40px}
+  .story-content h3{font-size:17px}
+  .story-content p{font-size:14px}
+  .story-content{padding-bottom:36px}
+
   .footer-inner{grid-template-columns:1fr 1fr;row-gap:28px}
   .footer-brand{grid-column:1/-1;max-width:100%}
   .footer-bottom{flex-direction:column;gap:12px;text-align:center}
@@ -513,15 +544,17 @@ footer{
 
 <!-- NAV -->
 <nav id="navbar">
-  <a href="#" class="nav-brand">
-    <img src="https://raw.githubusercontent.com/yogasonry/MediaTrack/main/Logo%20MediaTrack.png" alt="MediaTrack" class="nav-brand-logo">
-  </a>
-  <div class="nav-links">
-    <a href="#features" class="nav-link">Features</a>
-    <a href="#how-it-works" class="nav-link">How It Works</a>
-    <a href="#use-cases" class="nav-link">Use Cases</a>
+  <div class="nav-inner">
+    <a href="#" class="nav-brand">
+      <img src="https://raw.githubusercontent.com/yogasonry/MediaTrack/main/Logo%20MediaTrack.png" alt="MediaTrack" class="nav-brand-logo">
+    </a>
+    <div class="nav-links">
+      <a href="#features" class="nav-link">Features</a>
+      <a href="#how-it-works" class="nav-link">How It Works</a>
+      <a href="#use-cases" class="nav-link">Use Cases</a>
+    </div>
+    <a href="/app" class="nav-cta">Open App →</a>
   </div>
-  <a href="/app" class="nav-cta">Get Started Free →</a>
 </nav>
 
 <!-- HERO -->
@@ -533,7 +566,7 @@ footer{
   <h1>Track, Manage &amp; Secure<br><span>Every Media Transfer</span></h1>
   <p class="hero-sub">Record, monitor, and verify every file transfer from camera to storage. Zero guesswork, zero data loss.</p>
   <div class="hero-actions">
-    <a href="/app" class="btn-primary">
+    <a href="/app/signup" class="btn-primary">
       Start Free Today
       <svg class="btn-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
     </a>
@@ -960,15 +993,98 @@ footer{
   </div>
 </section>
 
-<!-- CTA -->
+<!-- STORY -->
+<section class="story-section" id="story">
+  <div class="container">
+    <div class="story-inner animate">
+
+      <div class="story-header">
+        <span class="section-tag tag-navy">The Story</span>
+        <h2 class="section-title">Berawal dari sebuah<br>catatan di kertas.</h2>
+      </div>
+
+      <div class="story-body">
+
+        <div class="story-block animate">
+          <div class="story-icon-wrap">
+            <div class="story-icon" style="background:rgba(232,56,79,.1)">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e8384f" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            </div>
+            <div class="story-line"></div>
+          </div>
+          <div class="story-content">
+            <span class="story-label">Masalahnya</span>
+            <h3>Kertas, pulpen, dan harapan.</h3>
+            <p>Di setiap shoot yang aku kerjakan, selalu ada satu momen yang paling bikin deg-degan: pas DIT bilang <em>"eh, card ini udah di-copy belum ya?"</em> Dan tidak ada yang bisa menjawab dengan pasti.</p>
+            <p>Yang ada cuma catatan di notes HP, foto whiteboard, atau worst case — tidak ada catatan sama sekali. Semua berjalan dari ingatan dan kepercayaan. Kadang berhasil, kadang... ya, kamu tahu lah jadinya.</p>
+          </div>
+        </div>
+
+        <div class="story-block animate">
+          <div class="story-icon-wrap">
+            <div class="story-icon" style="background:rgba(255,189,46,.12)">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b07a00" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+            <div class="story-line"></div>
+          </div>
+          <div class="story-content">
+            <span class="story-label">Momen "Aha"</span>
+            <h3>Setelah satu malam yang panjang di Day Zero.</h3>
+            <p>Waktu itu aku lagi handle media management di sebuah event musik besar di Bali. Multi-kamera, multi-artist, multi-stage. Crew berlarian, card masuk keluar terus, dan aku harus track semuanya manual.</p>
+            <p>Pulang jam 3 pagi, mata sepet, sambil lihat spreadsheet yang berantakan — aku pikir: <em>harus ada cara yang lebih baik dari ini.</em> Kalau sistem transfer bisa semi-otomatis, kenapa log-nya masih manual?</p>
+          </div>
+        </div>
+
+        <div class="story-block animate">
+          <div class="story-icon-wrap">
+            <div class="story-icon" style="background:rgba(0,180,216,.1)">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--teal2)" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            </div>
+            <div class="story-line"></div>
+          </div>
+          <div class="story-content">
+            <span class="story-label">Mulai Bangun</span>
+            <h3>Satu file HTML, satu mimpi besar.</h3>
+            <p>Aku bukan developer profesional. Tapi cukup tahu cara bikin sesuatu jalan. Mulai dari single-page HTML sederhana, backend Supabase, deploy di Cloudflare Pages — dan pelan-pelan fiturnya nambah sesuai kebutuhan nyata di lapangan.</p>
+            <p>Yang paling aku utamakan: <strong>harus cepat diisi, tidak perlu training</strong>, dan bisa dibuka dari HP manapun di tengah chaos-nya produksi. Tidak ada install, tidak ada login yang ribet.</p>
+          </div>
+        </div>
+
+        <div class="story-block animate">
+          <div class="story-icon-wrap">
+            <div class="story-icon" style="background:rgba(12,169,122,.12)">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0ca97a" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+            <div class="story-line" style="display:none"></div>
+          </div>
+          <div class="story-content">
+            <span class="story-label">Sekarang</span>
+            <h3>Sudah dipakai. Sudah terbukti.</h3>
+            <p>MediaTrack sudah digunakan di real event — dari wedding production sampai festival musik berskala besar. Tim bisa log transfer dalam hitungan detik, semua tercatat dengan siapa, kapan, dari kamera mana, ke storage mana.</p>
+            <p>Dan yang paling bikin aku senang? Tidak ada lagi pertanyaan <em>"card ini udah di-copy belum?"</em> — semua orang tinggal buka dashboard, dan jawabannya langsung ada di sana.</p>
+            <div class="story-author">
+              <div class="story-avatar">Y</div>
+              <div>
+                <div class="story-author-name">Yoga Purnarno</div>
+                <div class="story-author-role">Post Production · Media Agency · Bali</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
 <section class="cta-section" id="get-started">
   <div class="container">
     <div class="animate">
       <span class="section-tag" style="color:var(--mint);background:rgba(126,239,192,.15);margin-bottom:20px">Free During Early Access</span>
       <h2 class="section-title">Stop losing track<br>of your media files.</h2>
-      <p>Join production teams across Indonesia who use MediaTrack<br>to keep their data safe, organized, and accountable<br>at zero cost.</p>
+      <p>Join to keep data safe, organized, and accountable at zero cost.</p>
+
       <div class="cta-actions">
-        <a href="/app" class="btn-white">
+        <a href="/app/signup" class="btn-white">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
           Open MediaTrack Free
         </a>
@@ -987,7 +1103,7 @@ footer{
       <a href="#" class="footer-logo">
         <img src="https://raw.githubusercontent.com/yogasonry/MediaTrack/main/Logo%20MediaTrack%20white.png" alt="MediaTrack" style="height:44px;width:auto">
       </a>
-      <p>Media Transfer Tracking for production teams. Built in Bali, used across Indonesia.</p>
+      <p>Media Transfer Tracking for Production Teams.</p>
     </div>
     <div class="footer-col">
       <h4>Product</h4>
