@@ -279,12 +279,21 @@ h2.section-title{
   font-size:20px;font-weight:800;color:var(--navy);font-family:var(--mono);
   background:var(--surface);border:2px solid var(--border);
   position:relative;z-index:2;
-  transition:all .2s;box-shadow:0 0 0 6px var(--bg);
+  transition:all .25s ease;box-shadow:0 0 0 6px var(--bg);
+  overflow:hidden;
 }
+.step-num::before{
+  content:'';position:absolute;inset:0;border-radius:50%;
+  background:var(--grad);opacity:0;transition:opacity .25s ease;z-index:0;
+}
+.step-num span{position:relative;z-index:1;transition:color .25s ease}
 .step-card:hover .step-num{
-  background:var(--grad);color:#fff;border-color:transparent;
-  box-shadow:0 0 0 6px var(--bg),0 4px 16px var(--glow);
+  border-color:transparent;
+  box-shadow:0 0 0 6px var(--bg),0 4px 20px var(--glow);
+  color:#fff;
 }
+.step-card:hover .step-num::before{opacity:1}
+.step-card:hover .step-num span{color:#fff}
 .step-card h3{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:8px}
 .step-card p{font-size:12px;color:var(--dim);line-height:1.6;font-family:var(--mono)}
 
@@ -616,7 +625,7 @@ footer{
       </div>
       <div class="app-main">
         <div class="app-page-title">Dashboard</div>
-        <div class="app-page-sub">Day Zero Bali 2026 · GWK Cultural Park · Apr 2026</div>
+        <div class="app-page-sub">Bali Music Festival 2026 · GWK Cultural Park · Apr 2026</div>
         <div class="stats-row">
           <div class="stat-card">
             <div class="stat-label">Total Submissions</div>
@@ -672,7 +681,7 @@ footer{
     <div class="mob-topbar">
       <div class="mob-event-pill">
         <span class="mob-event-dot"></span>
-        <span class="mob-event-name">Day Zero Bali 2026</span>
+        <span class="mob-event-name">Bali Music Festival 2026</span>
         <span class="mob-event-arrow">▾</span>
       </div>
       <div class="mob-new-btn">
@@ -691,7 +700,7 @@ footer{
     </div>
     <div class="mob-body">
       <div class="mob-page-title">Dashboard</div>
-      <div class="mob-page-sub">File transfer summary · Day Zero Bali · GWK Cultural Park · 2 Apr 2026</div>
+      <div class="mob-page-sub">File transfer summary · Bali Music Festival 2026 · GWK Cultural Park · Apr 2026</div>
       <div class="mob-stats">
         <div class="mob-stat s1">
           <div class="mob-stat-label">Total Submissions</div>
@@ -740,8 +749,8 @@ footer{
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--navy)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       </div>
       <div>
-        <div class="sp-item-name">Day Zero Bali</div>
-        <div class="sp-item-sub">GWK Cultural Park · 2026</div>
+        <div class="sp-item-name">Music Events</div>
+        <div class="sp-item-sub">Festivals & Live Productions</div>
       </div>
     </div>
     <div style="width:1px;height:36px;background:var(--border)"></div>
@@ -788,28 +797,28 @@ footer{
     <div class="problem-grid">
       <div class="problem-card animate">
         <div class="problem-icon" style="background:rgba(232,56,79,.1)">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e8384f" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e8384f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         </div>
         <h3>Files Get Lost</h3>
         <p>No confirmation, no audit trail. Files disappear and nobody knows where they went.</p>
       </div>
       <div class="problem-card animate">
         <div class="problem-icon" style="background:rgba(255,189,46,.12)">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b07a00" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87m-4-12a4 4 0 010 7.75"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b07a00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0112 0v2"/><line x1="12" y1="12" x2="12" y2="14"/><circle cx="12" cy="17" r="1" fill="#b07a00"/></svg>
         </div>
         <h3>No Accountability</h3>
         <p>Who transferred what? When? From which card? Nobody can say for certain.</p>
       </div>
       <div class="problem-card animate">
         <div class="problem-icon" style="background:rgba(26,95,216,.1)">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1a5fd8" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1a5fd8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6" stroke-width="3"/><line x1="6" y1="18" x2="6.01" y2="18" stroke-width="3"/><path d="M18 10v4M15 13l3 3 3-3" stroke="#e8384f"/></svg>
         </div>
         <h3>Storage Surprises</h3>
         <p>Drives fill up mid-shoot with no warning. You discover it too late.</p>
       </div>
       <div class="problem-card animate">
         <div class="problem-icon" style="background:rgba(124,58,237,.1)">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12h6M9 16h4M4 4h16a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2z"/><path d="M8 4v4M16 4v4"/></svg>
         </div>
         <h3>Scattered Logs</h3>
         <p>Notes on phones, scraps of paper, voice memos. No single source of truth.</p>
@@ -829,21 +838,21 @@ footer{
     <div class="solution-grid">
       <div class="solution-card animate">
         <div class="sol-icon" style="background:rgba(0,180,216,.15)">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="17 8 21 12 17 16"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         </div>
         <h3>Transfer Tracking</h3>
         <p>Record every file transfer in real time — from which card, to which drive, by whom, and at exactly what time.</p>
       </div>
       <div class="solution-card animate">
         <div class="sol-icon" style="background:rgba(126,239,192,.12)">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--mint)" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87m-4-12a4 4 0 010 7.75"/></svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--mint)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
         </div>
         <h3>Crew Coordination</h3>
         <p>Assign crew roles, track activity per person, and keep everyone accountable with a clear audit trail.</p>
       </div>
       <div class="solution-card animate">
         <div class="sol-icon" style="background:rgba(255,255,255,.08)">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.8)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
         </div>
         <h3>Storage Management</h3>
         <p>Monitor capacity in real time. Get a clear view of used vs. available storage across all devices on set.</p>
@@ -865,42 +874,42 @@ footer{
     <div class="features-grid">
       <div class="feature-card animate">
         <div class="feature-icon" style="background:rgba(0,180,216,.1)">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--teal2)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--teal2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         </div>
         <h3>Real-time Transfer Logging</h3>
         <p>Every file move is logged automatically with timestamp, crew name, scene, and camera ID.</p>
       </div>
       <div class="feature-card animate">
         <div class="feature-icon" style="background:rgba(12,169,122,.12)">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0ca97a" stroke-width="2"><path d="M1 6l11 6 11-6M1 6v12l11 6M1 6l11-6 11 6m0 0v12L12 24M23 6L12 12v12"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0ca97a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
         </div>
         <h3>Scene & Shot Tracking</h3>
         <p>Organize every transfer by scene, shot, camera, and artist. Never lose context again.</p>
       </div>
       <div class="feature-card animate">
         <div class="feature-icon" style="background:rgba(124,58,237,.1)">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87m-4-12a4 4 0 010 7.75"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
         </div>
         <h3>Crew Management</h3>
         <p>Manage your crew, assign roles, and see exactly who did what across the entire event.</p>
       </div>
       <div class="feature-card animate">
         <div class="feature-icon" style="background:rgba(26,95,216,.1)">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1a5fd8" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1a5fd8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
         </div>
         <h3>Storage Monitoring</h3>
-        <p>Track storage capacity and real-time usage across all devices — no surprises mid-shoot.</p>
+        <p>Track storage capacity and real-time usage across all devices. No surprises mid-shoot.</p>
       </div>
       <div class="feature-card animate">
         <div class="feature-icon" style="background:rgba(230,106,42,.1)">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c05c1a" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c05c1a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         </div>
         <h3>Export & Reports</h3>
         <p>Download full transfer logs as CSV. Perfect for post-production handoffs and billing.</p>
       </div>
       <div class="feature-card animate">
         <div class="feature-icon" style="background:rgba(12,169,122,.12)">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0ca97a" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0ca97a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         </div>
         <h3>Secure & Reliable</h3>
         <p>Powered by Supabase. Your data is encrypted, backed up, and always accessible from any browser.</p>
@@ -921,22 +930,22 @@ footer{
       <div class="steps-line"></div>
       <div class="steps-grid">
         <div class="step-card animate">
-          <div class="step-num">1</div>
+          <div class="step-num"><span>1</span></div>
           <h3>Create Your Event</h3>
           <p>Set up an event with your project details, crew list, and scene breakdown in minutes.</p>
         </div>
         <div class="step-card animate">
-          <div class="step-num">2</div>
+          <div class="step-num"><span>2</span></div>
           <h3>Assign Crew</h3>
           <p>Add your team members and define each person's role: DIT, camera op, runner, or admin.</p>
         </div>
         <div class="step-card animate">
-          <div class="step-num">3</div>
+          <div class="step-num"><span>3</span></div>
           <h3>Record Transfers</h3>
           <p>Log every file batch as it moves from card to drive. Track size, scene, camera, and status.</p>
         </div>
         <div class="step-card animate">
-          <div class="step-num">4</div>
+          <div class="step-num"><span>4</span></div>
           <h3>Monitor & Export</h3>
           <p>Watch your dashboard update live. When it's a wrap, export the full log as a CSV report.</p>
         </div>
@@ -955,7 +964,7 @@ footer{
     <div class="usecases-grid">
       <div class="usecase-card animate">
         <div class="uc-icon" style="background:rgba(0,180,216,.1)">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal2)" stroke-width="2"><path d="M14.5 10c-.83 0-1.5-.67-1.5-1.5v-5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5z"/><path d="M20.5 10H19V8.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/><path d="M9.5 14c.83 0 1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5S8 21.33 8 20.5v-5c0-.83.67-1.5 1.5-1.5z"/><path d="M3.5 14H5v1.5c0 .83-.67 1.5-1.5 1.5S2 16.33 2 15.5 2.67 14 3.5 14z"/><path d="M14 14.5c0-.83.67-1.5 1.5-1.5h5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-5c-.83 0-1.5-.67-1.5-1.5z"/><path d="M15.5 19H14v1.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5-.67-1.5-1.5-1.5z"/><path d="M10 9.5C10 8.67 9.33 8 8.5 8h-5C2.67 8 2 8.67 2 9.5S2.67 11 3.5 11h5c.83 0 1.5-.67 1.5-1.5z"/><path d="M8.5 5H10V3.5C10 2.67 9.33 2 8.5 2S7 2.67 7 3.5 7.67 5 8.5 5z"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
         </div>
         <div>
           <h3>Music Events & Festivals</h3>
@@ -964,7 +973,7 @@ footer{
       </div>
       <div class="usecase-card animate">
         <div class="uc-icon" style="background:rgba(232,56,79,.08)">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e8384f" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e8384f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
         </div>
         <div>
           <h3>Wedding Production</h3>
@@ -973,7 +982,7 @@ footer{
       </div>
       <div class="usecase-card animate">
         <div class="uc-icon" style="background:rgba(124,58,237,.1)">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 17h5M17 7h5"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
         </div>
         <div>
           <h3>Film Crew / DIT</h3>
@@ -982,7 +991,7 @@ footer{
       </div>
       <div class="usecase-card animate">
         <div class="uc-icon" style="background:rgba(12,169,122,.12)">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0ca97a" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0ca97a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
         </div>
         <div>
           <h3>Content Creators</h3>
