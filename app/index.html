@@ -549,8 +549,8 @@ tbody tr:hover .row-actions{opacity:1}
 .schedule-time{font-family:var(--mono);font-size:9px;color:var(--dim);white-space:nowrap;min-width:70px}
 .schedule-name{font-size:11px;font-weight:600;flex:1}
 .device-list-items{display:flex;flex-direction:column;gap:6px}
-.device-row{display:flex;align-items:center;gap:8px}
-.device-row input{flex:1;font-size:12px;padding:7px 10px}
+.device-row{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.device-row input[type="text"]{flex:1;font-size:12px;padding:7px 10px}
 .device-remove{width:28px;height:28px;border-radius:6px;border:1px solid var(--border2);background:none;cursor:pointer;color:var(--dim);display:grid;place-items:center;transition:all .12s;flex-shrink:0}
 .device-remove:hover{background:var(--red-bg);border-color:rgba(232,56,79,.3);color:var(--red)}
 .add-device-btn{padding:7px 14px;border-radius:var(--r-sm);border:1.5px dashed var(--border2);background:none;cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:600;color:var(--dim);width:100%;transition:all .12s;margin-top:6px;text-align:center}
@@ -1714,6 +1714,11 @@ tbody tr:hover .row-actions{opacity:1}
                 </button>
               </div>
               <div id="device-edit-view" style="display:none">
+                <div style="display:flex;gap:6px;align-items:center;padding:0 4px 6px;font-size:10px;font-weight:700;color:var(--dim);font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border);margin-bottom:8px">
+                  <span style="flex:1">Device Name</span>
+                  <span style="width:90px;text-align:right;flex-shrink:0">Capacity</span>
+                  <span style="width:28px"></span>
+                </div>
                 <div class="device-list-items" id="device-list"></div>
                 <button class="add-device-btn" onclick="addDevice()">+ Add storage device</button>
                 <div style="display:flex;gap:8px;margin-top:12px;align-items:center">
@@ -2839,17 +2844,21 @@ async function sbResetTransfers(eventId){
   return wsDelete('transfers',{'event_id':'eq.'+eventId,'workspace_id':'eq.'+(getWorkspaceId()||'null')});
 }
 
-// GET devices for an event -> ['HDD-1 Seagate 4TB', ...]
+// GET devices for an event -> [{name, capacityGB}, ...]
 async function sbGetDevices(eventId){
-  const rows=await wsGet('devices',{'event_id':'eq.'+eventId,'select':'name','order':'id.asc'});
-  return rows.map(r=>r.name).filter(Boolean);
+  const rows=await wsGet('devices',{'event_id':'eq.'+eventId,'select':'name,capacity_gb','order':'id.asc'});
+  return rows.map(r=>({name:r.name, capacityGB:parseFloat(r.capacity_gb)||0})).filter(r=>r.name);
 }
 
 // SAVE devices for an event -> delete all + insert new
 async function sbSaveDevices(eventId, devices){
   await wsDelete('devices',{'event_id':'eq.'+eventId}).catch(()=>{});
   if(!devices.length)return [];
-  return wsInsert('devices', devices.map(name=>({event_id:eventId,workspace_id:getWorkspaceId()||null, name})));
+  return wsInsert('devices', devices.map(d=>{
+    const name = typeof d==='string'?d:(d.name||d);
+    const capacityGB = typeof d==='object'?(parseFloat(d.capacityGB)||0):0;
+    return {event_id:eventId, workspace_id:getWorkspaceId()||null, name, capacity_gb:capacityGB};
+  }));
 }
 
 /* == SUPABASE EVENTS SYNC == */
@@ -4519,7 +4528,7 @@ function _wizBodyHtml(stepId){
     return `<div style="font-size:12px;color:var(--ink2);margin-bottom:14px;line-height:1.6">Add the storage devices you'll use to receive files from cards.</div>
       <div id="wiz-device-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px">
         ${devs.map((d,i)=>`<div style="display:flex;gap:8px;align-items:center">
-          <input type="text" value="${x(d)}" id="wiz-dev-${i}" placeholder="e.g. HDD-1 Seagate 4TB" style="flex:1;background:var(--bg);border:1.5px solid var(--border2);color:var(--ink);padding:9px 12px;border-radius:var(--r-sm);font-size:12px;font-family:var(--sans);outline:none">
+          <input type="text" value="${x(d.name)}" id="wiz-dev-${i}" placeholder="e.g. HDD-1 Seagate 4TB" style="flex:1;background:var(--bg);border:1.5px solid var(--border2);color:var(--ink);padding:9px 12px;border-radius:var(--r-sm);font-size:12px;font-family:var(--sans);outline:none">
           <button onclick="this.closest('div').remove()" style="width:30px;height:30px;border-radius:6px;background:none;border:1px solid var(--border2);cursor:pointer;color:var(--dim);display:grid;place-items:center;flex-shrink:0" onmouseover="this.style.color='var(--red)';this.style.borderColor='rgba(232,56,79,.3)'" onmouseout="this.style.color='var(--dim)';this.style.borderColor='var(--border2)'">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
@@ -4606,7 +4615,7 @@ function _wizSaveStep(){
   }
   if(step.id==='devices'){
     const inputs=document.querySelectorAll('#wiz-device-list input[type="text"]');
-    const devs=[...inputs].map(i=>i.value.trim()).filter(Boolean);
+    const devs=[...inputs].map(i=>i.value.trim()).filter(Boolean).map(name=>({name,capacityGB:0}));
     if(devs.length){
       localStorage.setItem('dmt_devices_'+(_wizEventId||getActiveEventId()),JSON.stringify(devs));
       buildDeviceDropdown();renderDeviceSettings();
@@ -6019,12 +6028,21 @@ function getDevices(){
   const key=_uk(DEVICES_KEY)+'_'+getActiveEventId();
   const raw=localStorage.getItem(key);
   if(raw!==null){
-    try{const s=JSON.parse(raw);if(Array.isArray(s))return s;}catch{}
+    try{
+      const s=JSON.parse(raw);
+      if(Array.isArray(s)){
+        // Normalize: support both old string format and new object format {name, capacityGB}
+        return s.map(d=> typeof d==='string' ? {name:d, capacityGB:0} : {name:d.name||d, capacityGB:parseFloat(d.capacityGB)||0});
+      }
+    }catch{}
   }
-  return [...(DEVICES_DEFAULT||[])];
+  const defaults=DEVICES_DEFAULT||[];
+  return defaults.map(d=> typeof d==='string' ? {name:d, capacityGB:0} : {name:d.name||d, capacityGB:parseFloat(d.capacityGB)||0});
 }
+// Helper: get device names only (for dropdowns / compat)
+function getDeviceNames(){return getDevices().map(d=>d.name);}
 
-// Ambil device list from GAS dan sync ke localStorage
+// Ambil device list from Supabase dan sync ke localStorage
 async function syncDevicesFromSupabase(){
   try{
     const devs=await sbGetDevices(getActiveEventId());
@@ -6038,24 +6056,32 @@ async function syncDevicesFromSupabase(){
 function buildDeviceDropdown(){
   const sel=document.getElementById('f-storage'),devs=getDevices();
   sel.innerHTML='<option value="">-- Select storage --</option>';
-  devs.forEach(d=>{const o=document.createElement('option');o.value=d;o.textContent=d;sel.appendChild(o);});
+  devs.forEach(d=>{const o=document.createElement('option');o.value=d.name;o.textContent=d.name+(d.capacityGB>0?' ('+d.capacityGB+' GB)':'');sel.appendChild(o);});
   // Auto-select last used storage device
   const last=localStorage.getItem(_uk('dmt_last_storage'));
   if(last){const opt=[...sel.options].find(o=>o.value===last);if(opt)sel.value=last;}
   const prev=document.getElementById('device-preview');
   prev.innerHTML=devs.length
-    ?devs.map(d=>`<div style="padding:6px 0;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:11px;display:flex;align-items:center;gap:7px;color:var(--ink2)"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/></svg>${x(d)}</div>`).join('')
+    ?devs.map(d=>`<div style="padding:6px 0;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:11px;display:flex;align-items:center;gap:7px;color:var(--ink2)"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/></svg>${x(d.name)}${d.capacityGB>0?`<span style="margin-left:auto;font-size:10px;color:var(--dim)">${d.capacityGB} GB</span>`:''}</div>`).join('')
     :'No devices yet. Add them in Settings.';
 }
 
 function renderDeviceSettings(){
   const devs=getDevices();
-  // Edit view
-  document.getElementById('device-list').innerHTML=devs.map((d,i)=>`<div class="device-row"><input type="text" value="${x(d)}" id="dev-${i}" placeholder="Device name (e.g. HDD-1 Seagate 4TB)"><button class="device-remove" onclick="removeDevice(${i})"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>`).join('');
+  // Edit view — add capacity GB field
+  document.getElementById('device-list').innerHTML=devs.map((d,i)=>`<div class="device-row" style="display:flex;gap:6px;align-items:center;margin-bottom:6px">
+    <input type="text" value="${x(d.name)}" id="dev-name-${i}" placeholder="Device name (e.g. HDD-1 Seagate 4TB)" style="flex:1">
+    <div style="display:flex;align-items:center;gap:0;background:var(--bg);border:1.5px solid var(--border2);border-radius:var(--r-sm);overflow:hidden;flex-shrink:0">
+      <input type="number" value="${d.capacityGB>0?d.capacityGB:''}" id="dev-cap-${i}" placeholder="0" min="0" step="0.1"
+        style="width:72px;background:transparent;border:none;outline:none;padding:8px 6px 8px 10px;font-family:var(--mono);font-size:12px;color:var(--ink);text-align:right">
+      <span style="padding:0 8px 0 2px;font-size:10px;font-weight:700;color:var(--dim);font-family:var(--mono);flex-shrink:0">GB</span>
+    </div>
+    <button class="device-remove" onclick="removeDevice(${i})" style="flex-shrink:0"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>`).join('');
   // Locked view
   const lockedEl=document.getElementById('device-list-locked');
   if(devs.length){
-    lockedEl.innerHTML=devs.map(d=>`<div style="padding:7px 10px;border-radius:var(--r-sm);background:var(--bg);border:1px solid var(--border);font-family:var(--mono);font-size:11px;display:flex;align-items:center;gap:8px;color:var(--ink2)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5"><rect x="2" y="3" width="20" height="14" rx="2"/></svg><span style="flex:1">${x(d)}</span><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div>`).join('');
+    lockedEl.innerHTML=devs.map(d=>`<div style="padding:7px 10px;border-radius:var(--r-sm);background:var(--bg);border:1px solid var(--border);font-family:var(--mono);font-size:11px;display:flex;align-items:center;gap:8px;color:var(--ink2);margin-bottom:5px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5"><rect x="2" y="3" width="20" height="14" rx="2"/></svg><span style="flex:1">${x(d.name)}</span>${d.capacityGB>0?`<span style="font-size:10px;color:var(--dim);background:var(--bg2);padding:2px 7px;border-radius:4px;border:1px solid var(--border)">${d.capacityGB} GB</span>`:''}<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div>`).join('');
   } else {
     lockedEl.innerHTML='<div style="font-size:12px;color:var(--dim);font-family:var(--mono);padding:8px 0">No devices yet. Click Edit Storage.</div>';
   }
@@ -6071,18 +6097,26 @@ function cancelEditDevices(){
   document.getElementById('device-locked-view').style.display='block';
   renderDeviceSettings();
 }
-function addDevice(){const devs=getDevices();devs.push('');localStorage.setItem(_uk(DEVICES_KEY)+'_'+getActiveEventId(),JSON.stringify(devs));renderDeviceSettings();}
+function addDevice(){const devs=getDevices();devs.push({name:'',capacityGB:0});localStorage.setItem(_uk(DEVICES_KEY)+'_'+getActiveEventId(),JSON.stringify(devs));renderDeviceSettings();}
 function removeDevice(i){const devs=getDevices();devs.splice(i,1);localStorage.setItem(_uk(DEVICES_KEY)+'_'+getActiveEventId(),JSON.stringify(devs));renderDeviceSettings();}
 
 async function saveDevices(){
-  const inputs=document.querySelectorAll('[id^="dev-"]');
-  const devs=[...inputs].map(inp=>inp.value.trim()).filter(Boolean);
+  // Collect name + capacityGB from each device row
+  const devRows=document.querySelectorAll('#device-list > div');
+  const devs=[...devRows].map((row,i)=>{
+    const nameInp=document.getElementById('dev-name-'+i);
+    const capInp=document.getElementById('dev-cap-'+i);
+    const name=(nameInp?nameInp.value:'' ).trim();
+    const capacityGB=parseFloat(capInp?capInp.value:0)||0;
+    return name?{name,capacityGB}:null;
+  }).filter(Boolean);
   // 1. Save ke localStorage dulu (instant)
   localStorage.setItem(_uk(DEVICES_KEY)+'_'+getActiveEventId(),JSON.stringify(devs));
   buildDeviceDropdown();
   document.getElementById('device-edit-view').style.display='none';
   document.getElementById('device-locked-view').style.display='block';
   renderDeviceSettings();
+  renderStorageStats();
   // 2. Persist ke Supabase (background)
   try{
     await sbSaveDevices(getActiveEventId(),devs);
@@ -6774,13 +6808,11 @@ function renderStorageStats(){
     container.style.width='';
     return;
   }
-  // Build case-insensitive lookup map
+  // Build case-insensitive lookup map using device objects
   const storageMap={};
-  const devsNorm={}; // normalized key -> original label
   devs.forEach(d=>{
-    const norm=d.trim().toLowerCase();
-    storageMap[norm]={mb:0,count:0,label:d};
-    devsNorm[norm]=d;
+    const norm=d.name.trim().toLowerCase();
+    storageMap[norm]={mb:0,count:0,label:d.name,capacityGB:d.capacityGB||0};
   });
   let unassigned={mb:0,count:0};
   rows.forEach(r=>{
@@ -6794,28 +6826,51 @@ function renderStorageStats(){
     }
   });
   const palette=['#3d6bff','#0ca97a','#e86a2a','#7c3aed','#0099aa','#e84f8c','#c8a200'];
-  const allEntries=devs.map(d=>storageMap[d.trim().toLowerCase()]||{mb:0,count:0,label:d});
-  const maxMB=Math.max(...allEntries.map(s=>s.mb),unassigned.mb,1024);
+  const allEntries=devs.map(d=>storageMap[d.name.trim().toLowerCase()]||{mb:0,count:0,label:d.name,capacityGB:d.capacityGB||0});
+
   const renderCard=(label,s,clr)=>{
     const gb=(s.mb/1024);
     const display=gb>=1?gb.toFixed(2)+' GB':s.mb.toFixed(0)+' MB';
-    const pct=Math.min(100,(s.mb/maxMB)*100);
+    const capGB=s.capacityGB||0;
+    // If capacity is set, use it for the progress bar; otherwise use relative comparison
+    let pct, barLabel, barColor;
+    if(capGB>0){
+      const usedGB=s.mb/1024;
+      const rawPct=(usedGB/capGB)*100;
+      pct=Math.min(100,rawPct);
+      const freePct=Math.max(0,100-rawPct).toFixed(0);
+      const usedPct=Math.min(100,rawPct).toFixed(0);
+      // Color: green <60%, orange 60-85%, red >85%
+      barColor=rawPct>85?'#e8384f':rawPct>60?'#e86a2a':'#0ca97a';
+      barLabel=`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:5px">
+        <span style="font-size:9px;font-family:var(--mono);color:var(--dim)">${usedPct}% used · ${freePct}% free</span>
+        <span style="font-size:9px;font-family:var(--mono);color:var(--dim)">${capGB} GB total</span>
+      </div>`;
+    } else {
+      // No capacity set — relative bar vs max device
+      const maxMB=Math.max(...allEntries.map(e=>e.mb),unassigned.mb,1024);
+      pct=Math.min(100,(s.mb/maxMB)*100);
+      barColor=clr;
+      barLabel=`<div style="margin-top:5px;font-size:9px;font-family:var(--mono);color:var(--dim)">Set capacity in Settings for % view</div>`;
+    }
     return `<div class="storage-card">
       <div style="position:absolute;top:0;left:0;right:0;height:3px;background:${clr}"></div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${clr}" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
         <span style="font-size:11px;font-weight:700;color:var(--ink);font-family:var(--mono);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${x(label)}</span>
+        ${capGB>0?`<span style="font-size:9px;font-weight:700;color:var(--dim);font-family:var(--mono);background:var(--bg2);padding:1px 6px;border-radius:4px;border:1px solid var(--border);flex-shrink:0">${capGB} GB</span>`:''}
       </div>
       <div style="font-size:20px;font-weight:800;letter-spacing:-1px;color:${clr};line-height:1;margin-bottom:3px">${display}</div>
       <div style="font-size:10px;color:var(--dim);font-family:var(--mono);margin-bottom:8px">${s.count} submission${s.count!==1?'s':''}</div>
-      <div style="height:3px;background:var(--border);border-radius:2px;overflow:hidden">
-        <div style="height:100%;width:${pct.toFixed(1)}%;background:${clr};border-radius:2px;transition:width .4s ease"></div>
+      <div style="height:5px;background:var(--border);border-radius:3px;overflow:hidden">
+        <div style="height:100%;width:${pct.toFixed(1)}%;background:${barColor};border-radius:3px;transition:width .4s ease"></div>
       </div>
+      ${barLabel}
     </div>`;
   };
   let html=devs.map((d,i)=>{
-    const s=storageMap[d.trim().toLowerCase()]||{mb:0,count:0,label:d};
-    return renderCard(d,s,palette[i%palette.length]);
+    const s=storageMap[d.name.trim().toLowerCase()]||{mb:0,count:0,label:d.name,capacityGB:d.capacityGB||0};
+    return renderCard(d.name,s,palette[i%palette.length]);
   }).join('');
   if(unassigned.count>0){
     html+=renderCard('Unassigned',unassigned,'#8892b0');
@@ -7120,7 +7175,7 @@ function pubRenderStorageStats(){
     return;
   }
   const storageMap={};
-  devs.forEach(d=>{storageMap[d.trim().toLowerCase()]={mb:0,count:0,label:d};});
+  devs.forEach(d=>{storageMap[d.name.trim().toLowerCase()]={mb:0,count:0,label:d.name,capacityGB:d.capacityGB||0};});
   let unassigned={mb:0,count:0};
   pubRows.forEach(r=>{
     const key=(r.storage||'').trim().toLowerCase();
@@ -7133,28 +7188,45 @@ function pubRenderStorageStats(){
     }
   });
   const palette=['#3d6bff','#0ca97a','#e86a2a','#7c3aed','#0099aa','#e84f8c','#c8a200'];
-  const allMbs=[...devs.map(d=>storageMap[d.trim().toLowerCase()]?.mb||0),unassigned.mb];
-  const maxMB=Math.max(...allMbs,1024);
+  const allEntries=devs.map(d=>storageMap[d.name.trim().toLowerCase()]||{mb:0,count:0,capacityGB:d.capacityGB||0});
   const renderCard=(label,s,clr)=>{
     const gb=(s.mb/1024);
     const display=gb>=1?gb.toFixed(2)+' GB':s.mb.toFixed(0)+' MB';
-    const pct=Math.min(100,(s.mb/maxMB)*100);
+    const capGB=s.capacityGB||0;
+    let pct,barLabel,barColor;
+    if(capGB>0){
+      const rawPct=(s.mb/1024/capGB)*100;
+      pct=Math.min(100,rawPct);
+      barColor=rawPct>85?'#e8384f':rawPct>60?'#e86a2a':'#0ca97a';
+      const freePct=Math.max(0,100-rawPct).toFixed(0);
+      barLabel=`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:5px">
+        <span style="font-size:9px;font-family:var(--mono);color:var(--dim)">${Math.min(100,rawPct).toFixed(0)}% used · ${freePct}% free</span>
+        <span style="font-size:9px;font-family:var(--mono);color:var(--dim)">${capGB} GB total</span>
+      </div>`;
+    } else {
+      const maxMB=Math.max(...allEntries.map(e=>e.mb),unassigned.mb,1024);
+      pct=Math.min(100,(s.mb/maxMB)*100);
+      barColor=clr;
+      barLabel='';
+    }
     return `<div class="storage-card">
       <div style="position:absolute;top:0;left:0;right:0;height:3px;background:${clr}"></div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${clr}" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
         <span style="font-size:11px;font-weight:700;color:var(--ink);font-family:var(--mono);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${x(label)}</span>
+        ${capGB>0?`<span style="font-size:9px;font-weight:700;color:var(--dim);font-family:var(--mono);background:var(--bg2);padding:1px 6px;border-radius:4px;border:1px solid var(--border);flex-shrink:0">${capGB} GB</span>`:''}
       </div>
       <div style="font-size:20px;font-weight:800;letter-spacing:-1px;color:${clr};line-height:1;margin-bottom:3px">${display}</div>
       <div style="font-size:10px;color:var(--dim);font-family:var(--mono);margin-bottom:8px">${s.count} submission${s.count!==1?'s':''}</div>
-      <div style="height:3px;background:var(--border);border-radius:2px;overflow:hidden">
-        <div style="height:100%;width:${pct.toFixed(1)}%;background:${clr};border-radius:2px;transition:width .4s ease"></div>
+      <div style="height:5px;background:var(--border);border-radius:3px;overflow:hidden">
+        <div style="height:100%;width:${pct.toFixed(1)}%;background:${barColor};border-radius:3px;transition:width .4s ease"></div>
       </div>
+      ${barLabel}
     </div>`;
   };
   let html=devs.map((d,i)=>{
-    const s=storageMap[d.trim().toLowerCase()]||{mb:0,count:0};
-    return renderCard(d,s,palette[i%palette.length]);
+    const s=storageMap[d.name.trim().toLowerCase()]||{mb:0,count:0,capacityGB:d.capacityGB||0};
+    return renderCard(d.name,s,palette[i%palette.length]);
   }).join('');
   if(unassigned.count>0) html+=renderCard('Unassigned',unassigned,'#8892b0');
   container.innerHTML=html;
@@ -7389,8 +7461,8 @@ function openEditModal(idx){
   // Populate storage dropdown
   const storageSel=document.getElementById('em-storage');
   const devs=getDevices();
-  storageSel.innerHTML=devs.map(d=>`<option value="${x(d)}"${r.storage===d?' selected':''}>${x(d)}</option>`).join('');
-  if(r.storage&&!devs.includes(r.storage)){
+  storageSel.innerHTML=devs.map(d=>`<option value="${x(d.name)}"${r.storage===d.name?' selected':''}>${x(d.name)}${d.capacityGB>0?' ('+d.capacityGB+' GB)':''}</option>`).join('');
+  if(r.storage&&!devs.find(d=>d.name===r.storage)){
     storageSel.innerHTML+=`<option value="${x(r.storage)}" selected>${x(r.storage)}</option>`;
   }
   // Populate slot dropdown
