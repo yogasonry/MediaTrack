@@ -2859,7 +2859,7 @@ async function sbResetTransfers(eventId){
 
 // GET devices for an event -> [{name, capacityGB}, ...]
 async function sbGetDevices(eventId){
-  const rows=await wsGet('devices',{'event_id':'eq.'+eventId,'select':'name,capacity_gb','order':'id.asc'});
+  const rows=await wsGet('devices',{'select':'name,capacity_gb','event_id':'eq.'+eventId,'order':'id.asc'});
   return rows.map(r=>({name:r.name, capacityGB:parseFloat(r.capacity_gb)||0})).filter(r=>r.name);
 }
 
@@ -3570,6 +3570,11 @@ function _applyGoogleSession(session){
   _authToken  = session.access_token;
   _authUserId = user.id;
 
+  // Store tokens
+  localStorage.setItem('mt_token', session.access_token);
+  localStorage.setItem('mt_uid', user.id);
+  if(session.refresh_token) localStorage.setItem('mt_refresh_token', session.refresh_token);
+
   const sess = {
     username:    user.email,
     role:        'data_manager',
@@ -3578,11 +3583,15 @@ function _applyGoogleSession(session){
     authToken:   session.access_token,
     userId:      user.id
   };
+
+  // Clear data if switching to a different user
+  _clearAppDataIfUserChanged(user.id);
+
   localStorage.setItem('dmt_session', JSON.stringify(sess));
   if(window.location.search.includes('code=') || window.location.hash.includes('access_token')){
     history.replaceState(null,'',window.location.pathname);
   }
-  startSession(sess);
+  bootApp(sess);
 }
 
 async function doLogin(){
