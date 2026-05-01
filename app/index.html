@@ -1700,6 +1700,19 @@ tbody tr:hover .row-actions{opacity:1}
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
                 Test Connection
               </button>
+              <!-- Sync to Cloud -->
+              <div style="margin-top:12px;padding:12px;border-radius:var(--r-sm);background:var(--bg);border:1.5px solid var(--border2)">
+                <div style="font-size:11px;font-weight:700;color:var(--ink);margin-bottom:4px;display:flex;align-items:center;gap:6px">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>
+                  Sync Local → Cloud
+                </div>
+                <div style="font-size:10px;color:var(--dim);font-family:var(--mono);line-height:1.6;margin-bottom:10px">Push semua data lokal (events, transfers, devices) ke Supabase. Gunakan jika data tidak muncul di device lain.</div>
+                <div id="sync-status" style="display:none;font-size:10px;font-family:var(--mono);padding:7px 10px;border-radius:6px;margin-bottom:8px;line-height:1.5"></div>
+                <button id="sync-cloud-btn" onclick="syncAllToCloud()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 14px;border-radius:var(--r-sm);background:var(--grad);border:none;cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:700;color:#fff;box-shadow:0 4px 14px var(--grad-shadow);transition:opacity .15s" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>
+                  Sync to Cloud
+                </button>
+              </div>
             </div>
             <div class="form-shell">
               <h2>
@@ -3304,6 +3317,44 @@ function clearWorkspace(){
   localStorage.removeItem('mt_token');localStorage.removeItem('mt_uid');
 }
 
+// Fetch workspace membership from Supabase for current user.
+// Called on every boot — ensures cross-device sync (HP ↔ browser).
+async function syncWorkspaceFromSupabase(){
+  if(!_authToken||!_authUserId) return;
+  // If workspace already loaded (e.g. from localStorage), still verify it's valid but don't block boot
+  try{
+    const rows = await fetch(
+      `${SB_URL}/rest/v1/workspace_members?user_id=eq.${_authUserId}&select=workspace_id,role,workspace:workspaces(id,name)&order=created_at.asc&limit=1`,
+      {headers:sbHeadersAuth()}
+    ).then(r=>r.ok?r.json():[]);
+    if(!rows.length) return;
+    const mem = rows[0];
+    const wsId = mem.workspace_id || mem.workspace?.id;
+    const wsName = mem.workspace?.name || 'My Workspace';
+    const wsRole = mem.role || 'member';
+    if(!wsId) return;
+    // Always update in-memory + localStorage so HP gets the same workspace as browser
+    setWorkspace(wsId, wsName, wsRole);
+    // Also persist workspaceId into session so next cold boot is instant
+    try{
+      const rawSess = localStorage.getItem('dmt_session');
+      if(rawSess){
+        const s = JSON.parse(rawSess);
+        s.workspaceId = wsId; s.workspaceName = wsName; s.workspaceRole = wsRole;
+        localStorage.setItem('dmt_session', JSON.stringify(s));
+      }
+    }catch{}
+    console.log('[workspace] synced from Supabase:', wsName, wsRole);
+  }catch(e){
+    console.warn('[workspace] sync failed:', e.message);
+    // Fallback: try to restore from localStorage
+    const cachedId = localStorage.getItem(WS_KEY+'_id');
+    const cachedName = localStorage.getItem(WS_KEY+'_name');
+    const cachedRole = localStorage.getItem(WS_KEY+'_role');
+    if(cachedId && !_wsId) setWorkspace(cachedId, cachedName||'My Workspace', cachedRole||'member');
+  }
+}
+
 /* -- REST helpers using auth token -- */
 async function wsGet(table,params={}){
   const q=new URLSearchParams(params).toString();
@@ -3913,14 +3964,22 @@ function bootApp(sess){
   applyNavState();
   const _activeEv=getActiveEvent();
   if(_activeEv)applyEvent(_activeEv);
-  syncDevicesFromSupabase(); // renamed from syncDevicesFromGAS
-  // Pull events then crew+schedule from Supabase (chained so events load first)
-  loadEventsFromSupabase()
+
+  // ── Critical boot sequence ──
+  // 1. Sync workspace from Supabase first (needed for all subsequent queries)
+  // 2. Then load events (needs workspace_id)
+  // 3. Then load devices + crew + schedule for active event
+  syncWorkspaceFromSupabase()
+    .then(()=> loadEventsFromSupabase())
     .then(()=>{
       const _evId = getActiveEventId();
-      if(_evId) sbPullCrewAndSchedule(_evId).catch(e=>console.warn('[boot] pullCrew failed:',e.message));
+      if(_evId){
+        sbPullCrewAndSchedule(_evId).catch(e=>console.warn('[boot] pullCrew failed:',e.message));
+        syncDevicesFromSupabase();
+      }
     })
-    .catch(e=>console.warn('[boot] loadEvents failed:',e.message));
+    .catch(e=>console.warn('[boot] boot chain failed:',e.message));
+
   startAutoRefresh();
   if(typeof initCrewFromStorage === 'function') initCrewFromStorage();
   if(typeof initScheduleFromStorage === 'function') initScheduleFromStorage();
@@ -4146,10 +4205,20 @@ async function loadEventsFromSupabase(){
   if(!_authToken) return; // not logged in yet
   const remote = await sbLoadEvents();
   if(!remote) return; // fetch failed, keep localStorage as-is
-  if(!remote.length) return; // empty remote — don't wipe local (fresh login edge case)
-  // Merge: remote is source of truth, but keep local if remote is subset
+  // Merge: remote is source of truth
   const local = getEvents();
-  const merged = remote;
+  if(!remote.length){
+    // Remote empty could mean: (a) no events yet, or (b) workspace_id not set / RLS blocking
+    // If we have local events and no workspace set, keep local as-is
+    if(local.length && !getWorkspaceId()){
+      console.warn('[events] remote empty but local has events + no workspace — keeping local');
+      return;
+    }
+    // Genuine empty remote — nothing to do (don't wipe local)
+    console.log('[events] remote empty, keeping', local.length, 'local events');
+    return;
+  }
+  const merged = [...remote];
   // Preserve any local-only events not yet synced (shouldn't happen normally)
   local.forEach(lev => {
     if(!merged.find(r=>r.id===lev.id)) merged.push(lev);
@@ -4160,6 +4229,9 @@ async function loadEventsFromSupabase(){
   applyNavState();
   const active = getActiveEvent();
   if(active) applyEvent(active);
+  // Also sync devices for active event now that we know the event
+  const _evId = getActiveEventId();
+  if(_evId) syncDevicesFromSupabase();
   console.log('[events] loaded', merged.length, 'events from Supabase');
 }
 
@@ -6798,7 +6870,113 @@ function updateStats(){
   document.getElementById('s-last-who').textContent =last?last.nama:'--';
 }
 
-/* == STORAGE STATS == */
+/* == SYNC ALL LOCAL DATA TO CLOUD == */
+async function syncAllToCloud(){
+  const btn = document.getElementById('sync-cloud-btn');
+  const statusEl = document.getElementById('sync-status');
+  if(!_authToken){ toast('Login required','err'); return; }
+
+  const wsId = getWorkspaceId();
+  if(!wsId){ toast('Workspace not loaded — please logout and login again','err'); return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Syncing...';
+  statusEl.style.display = 'block';
+  statusEl.style.background = 'var(--bg2)';
+  statusEl.style.color = 'var(--ink2)';
+  statusEl.style.border = '1px solid var(--border)';
+  statusEl.textContent = 'Starting sync...';
+
+  const log = (msg, type='info') => {
+    statusEl.textContent = msg;
+    statusEl.style.background = type==='ok' ? 'var(--green-bg)' : type==='err' ? 'var(--red-bg)' : 'var(--bg2)';
+    statusEl.style.color = type==='ok' ? 'var(--green)' : type==='err' ? 'var(--red)' : 'var(--ink2)';
+    statusEl.style.border = type==='ok' ? '1px solid rgba(12,169,122,.2)' : type==='err' ? '1px solid rgba(232,56,79,.2)' : '1px solid var(--border)';
+  };
+
+  let evOk=0, trOk=0, devOk=0, errs=[];
+
+  try {
+    // 1. Sync Events
+    log('Syncing events...');
+    const events = getEvents();
+    for(const ev of events){
+      try{
+        await wsInsert('events',{
+          id: ev.id, name: ev.name, location: ev.location||'',
+          date: ev.date||'', date_start: ev.dateStart||null, date_end: ev.dateEnd||null,
+          workspace_id: wsId
+        });
+        evOk++;
+      }catch{
+        // Try upsert via update
+        try{
+          await wsUpdate('events',{'id':'eq.'+ev.id},{
+            name: ev.name, location: ev.location||'', date: ev.date||'',
+            date_start: ev.dateStart||null, date_end: ev.dateEnd||null,
+            workspace_id: wsId
+          });
+          evOk++;
+        }catch(e2){ errs.push('event '+ev.name+': '+e2.message); }
+      }
+    }
+    log(`Events: ${evOk}/${events.length} ✓ — syncing devices...`);
+
+    // 2. Sync Devices per event
+    for(const ev of events){
+      try{
+        const devs = getDevices(); // current active event devices
+        if(devs.length) await sbSaveDevices(ev.id, devs);
+        devOk++;
+      }catch(e){ errs.push('devices for '+ev.name+': '+e.message); }
+    }
+    log(`Devices: ${devOk} events ✓ — syncing transfers...`);
+
+    // 3. Sync Transfers per event
+    for(const ev of events){
+      try{
+        // Load local transfers for this event
+        const localKey = _uk('dmt_rows')+'_'+ev.id;
+        const raw = localStorage.getItem(localKey);
+        if(!raw) continue;
+        const localRows = JSON.parse(raw);
+        if(!localRows.length) continue;
+        // Push each transfer
+        let pushed = 0;
+        for(const r of localRows){
+          try{
+            await wsInsert('transfers',{
+              id: r.id||undefined,
+              event_id: ev.id,
+              workspace_id: wsId,
+              nama: r.nama||'', role: r.role||'', storage: r.storage||'',
+              filesize: parseFloat(r.filesize)||0, unit: r.unit||'MB',
+              camera: r.camera||'', card_id: r.cardId||r.card_id||'',
+              status: r.status||'transferred', note: r.note||'',
+              created_at: r.created_at||new Date().toISOString()
+            });
+            pushed++;
+          }catch{
+            // row might already exist — skip
+          }
+        }
+        trOk += pushed;
+        log(`Transfers: ${trOk} pushed — continuing...`);
+      }catch(e){ errs.push('transfers for '+ev.name+': '+e.message); }
+    }
+
+    const summary = `✓ Synced: ${evOk} events · ${trOk} transfers · ${devOk} device sets`;
+    log(errs.length ? summary + ` · ${errs.length} skipped` : summary, errs.length?'info':'ok');
+    toast('Sync complete! '+evOk+' events uploaded','ok');
+
+  }catch(e){
+    log('Sync failed: '+e.message, 'err');
+    toast('Sync failed: '+e.message,'err');
+  }finally{
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg> Sync to Cloud';
+  }
+}
 function renderStorageStats(){
   const container=document.getElementById('storage-stats-grid');
   if(!container)return;
