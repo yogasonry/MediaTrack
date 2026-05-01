@@ -3321,21 +3321,37 @@ function clearWorkspace(){
 // Called on every boot — ensures cross-device sync (HP ↔ browser).
 async function syncWorkspaceFromSupabase(){
   if(!_authToken||!_authUserId) return;
-  // If workspace already loaded (e.g. from localStorage), still verify it's valid but don't block boot
   try{
-    const rows = await fetch(
-      `${SB_URL}/rest/v1/workspace_members?user_id=eq.${_authUserId}&select=workspace_id,role,workspace:workspaces(id,name)&order=created_at.asc&limit=1`,
-      {headers:sbHeadersAuth()}
-    ).then(r=>r.ok?r.json():[]);
-    if(!rows.length) return;
-    const mem = rows[0];
-    const wsId = mem.workspace_id || mem.workspace?.id;
-    const wsName = mem.workspace?.name || 'My Workspace';
-    const wsRole = mem.role || 'member';
+    // Step 1: get workspace_id for this user
+    const memRows = await wsGet('workspace_members',{
+      'select': 'workspace_id,role',
+      'user_id': 'eq.'+_authUserId,
+      'order': 'created_at.asc',
+      'limit': '1'
+    });
+    if(!memRows.length){
+      console.warn('[workspace] no membership found for user');
+      return;
+    }
+    const wsId = memRows[0].workspace_id;
+    const wsRole = memRows[0].role || 'member';
     if(!wsId) return;
-    // Always update in-memory + localStorage so HP gets the same workspace as browser
+
+    // Step 2: get workspace name
+    let wsName = 'My Workspace';
+    try{
+      const wsRows = await wsGet('workspaces',{
+        'select': 'id,name',
+        'id': 'eq.'+wsId,
+        'limit': '1'
+      });
+      if(wsRows.length) wsName = wsRows[0].name || 'My Workspace';
+    }catch{}
+
+    // Always update in-memory + localStorage
     setWorkspace(wsId, wsName, wsRole);
-    // Also persist workspaceId into session so next cold boot is instant
+
+    // Persist workspaceId into session for fast cold boot
     try{
       const rawSess = localStorage.getItem('dmt_session');
       if(rawSess){
@@ -3344,10 +3360,10 @@ async function syncWorkspaceFromSupabase(){
         localStorage.setItem('dmt_session', JSON.stringify(s));
       }
     }catch{}
-    console.log('[workspace] synced from Supabase:', wsName, wsRole);
+    console.log('[workspace] synced:', wsName, wsRole);
   }catch(e){
     console.warn('[workspace] sync failed:', e.message);
-    // Fallback: try to restore from localStorage
+    // Fallback to localStorage cache
     const cachedId = localStorage.getItem(WS_KEY+'_id');
     const cachedName = localStorage.getItem(WS_KEY+'_name');
     const cachedRole = localStorage.getItem(WS_KEY+'_role');
