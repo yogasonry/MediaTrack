@@ -3890,10 +3890,15 @@ function _clearAppDataIfUserChanged(newUserId){
       if(k && (
         k.startsWith('dmt_') ||
         k.startsWith('mt_ws') ||
-        k.startsWith('mt_pending')
+        k.startsWith('mt_pending') ||
+        k === 'mt_token' ||
+        k === 'mt_uid' ||
+        k === 'mt_refresh_token'
       )) keysToRemove.push(k);
     }
     keysToRemove.forEach(k => localStorage.removeItem(k));
+    // Reset in-memory workspace state
+    _wsId=null; _wsName=null; _wsRole=null;
     console.log('[auth] user changed, cleared', keysToRemove.length, 'localStorage keys');
   }
   localStorage.setItem('mt_last_uid', newUserId);
