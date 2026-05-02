@@ -3540,6 +3540,12 @@ function _getSbClient(){
     });
     // Event listener — fired kapanpun session berubah (termasuk setelah PKCE exchange)
     _sbClient.auth.onAuthStateChange((event, session) => {
+      if(event === 'SIGNED_OUT'){
+        // User logged out — clear everything and show login screen
+        localStorage.removeItem('dmt_session');
+        _authToken=null; _authUserId=null; _wsId=null;
+        return;
+      }
       if((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session){
         // Cek apakah sudah ada app session yang valid untuk user yang sama
         const existing = localStorage.getItem('dmt_session');
@@ -3932,12 +3938,21 @@ function _clearAppDataIfUserChanged(newUserId){
 function doLogout(){
   if(_tokenRefreshTimer) clearInterval(_tokenRefreshTimer);
   if(_autoRefreshTimer) clearInterval(_autoRefreshTimer);
-  localStorage.removeItem(SESSION_KEY);
-  localStorage.removeItem('mt_token');
-  localStorage.removeItem('mt_uid');
-  localStorage.removeItem('mt_refresh_token');
-  localStorage.removeItem('mt_last_uid');
-  _authToken=null; _authUserId=null;
+  // Sign out from Supabase Auth (clears sb-* session keys)
+  try{
+    if(_sbClient) _sbClient.auth.signOut().catch(()=>{});
+  }catch{}
+  // Clear all app localStorage keys
+  const toRemove=[];
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(k&&(k.startsWith('dmt_')||k.startsWith('mt_')||k.startsWith('sb-'))){
+      toRemove.push(k);
+    }
+  }
+  toRemove.forEach(k=>localStorage.removeItem(k));
+  // Clear in-memory state
+  _authToken=null; _authUserId=null; _wsId=null; _wsName=null; _wsRole=null;
   location.reload();
 }
 
