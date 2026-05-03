@@ -3938,6 +3938,10 @@ function _clearAppDataIfUserChanged(newUserId){
 function doLogout(){
   if(_tokenRefreshTimer) clearInterval(_tokenRefreshTimer);
   if(_autoRefreshTimer) clearInterval(_autoRefreshTimer);
+  // Cleanup realtime channel
+  try{
+    if(_realtimeChannel){ const sb=_getSbClient(); if(sb) sb.removeChannel(_realtimeChannel); _realtimeChannel=null; }
+  }catch(e){}
   // Sign out from Supabase Auth (clears sb-* session keys)
   try{
     if(_sbClient) _sbClient.auth.signOut().catch(()=>{});
@@ -4317,6 +4321,8 @@ function setActiveEvent(id){
   loadData();
   if(typeof renderSheetPage==='function')try{renderSheetPage();}catch(e){}
   toast('Event switched: '+ev.name,'ok');
+  // Restart realtime channel for new event
+  _startRealtimeSync();
 }
 
 function applyEvent(ev){
@@ -6496,6 +6502,38 @@ function startAutoRefresh(){
   _freshnessTimer=setInterval(_updateFreshnessLabel,5000);
   // Start JWT refresh cycle
   startTokenRefresh();
+  // Supabase Realtime — instant sync antar device
+  _startRealtimeSync();
+}
+
+let _realtimeChannel = null;
+function _startRealtimeSync(){
+  try{
+    const sb = _getSbClient();
+    if(!sb) return;
+    if(_realtimeChannel){ sb.removeChannel(_realtimeChannel); _realtimeChannel=null; }
+    const eventId = getActiveEventId();
+    if(!eventId) return;
+    _realtimeChannel = sb
+      .channel('transfers-sync-'+eventId)
+      .on('postgres_changes',{
+        event: '*',
+        schema: 'public',
+        table: 'transfers',
+        filter: 'event_id=eq.'+eventId
+      }, (payload)=>{
+        console.log('[realtime] change detected:', payload.eventType);
+        const activePage=document.querySelector('.page.active');
+        if(activePage&&(activePage.id==='page-dashboard'||activePage.id==='page-crew')){
+          loadData(true);
+        }
+      })
+      .subscribe((status)=>{
+        console.log('[realtime] status:', status);
+      });
+  }catch(e){
+    console.warn('[realtime] failed to start:', e);
+  }
 }
 
 /* == SCHEDULE STRIP (form sidebar) == */
