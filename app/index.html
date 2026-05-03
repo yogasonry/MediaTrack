@@ -1145,11 +1145,33 @@ tbody tr:hover .row-actions{opacity:1}
 }
 .mnav-center:active .mnav-center-icon{transform:scale(.93)}
 .mnav-center.active .mnav-center-icon{box-shadow:0 2px 8px var(--grad-shadow)}
-</style>
+
+/* ── OFFLINE BANNER ── */
+#offline-banner{
+  display:none;position:fixed;top:0;left:0;right:0;z-index:99999;
+  background:#e8384f;color:#fff;
+  padding:10px 16px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  font-size:12px;font-weight:700;font-family:var(--sans);
+  box-shadow:0 2px 12px rgba(232,56,79,.4);
+  transform:translateY(-100%);transition:transform .3s ease;
+}
+#offline-banner.visible{transform:translateY(0)}
+#offline-banner svg{flex-shrink:0}
+.offline-dot{width:7px;height:7px;border-radius:50%;background:#fff;opacity:.7;animation:blink 1.2s infinite}
+@keyframes blink{0%,100%{opacity:.7}50%{opacity:.2}}
+body.is-offline #app{pointer-events:none;filter:none}
+body.is-offline .mnav-center-icon{opacity:.5;cursor:not-allowed}
+
 </head>
 <body>
 
-<!-- LOGIN -->
+<!-- OFFLINE BANNER -->
+<div id="offline-banner">
+  <div class="offline-dot"></div>
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0119 12.55M5 12.55a10.94 10.94 0 015.17-2.39M10.71 5.05A16 16 0 0122.56 9M1.42 9a15.91 15.91 0 014.7-2.88M8.53 16.11a6 6 0 016.95 0M12 20h.01"/></svg>
+  No internet connection — transfers cannot be submitted
+</div>
 <div id="login-screen">
   <div class="login-wrap">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="35 48 850 225" preserveAspectRatio="xMidYMid meet" style="display:block;margin:0 auto 28px;width:270px;height:auto"><defs><linearGradient id="mt-grad-1" x1="-1389.52" y1="59.6" x2="-1388.52" y2="58.6" gradientTransform="translate(266827 -11200) scale(192)" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#1a3aaa"/><stop offset=".55" stop-color="#00bcd4"/><stop offset="1" stop-color="#7eefc0"/></linearGradient></defs><rect class="mt-logo-bg" fill="url(#mt-grad-1)" x="39.76" y="51.37" width="192" height="192" rx="40" ry="40"/><path class="mt-logo-white" d="M105.76,96.87h42c6.63,0,12,5.37,12,12v6h12v-6c0-13.25-10.75-24-24-24h-42c-6.63,0-12,5.37-12,12v96c0,6.63,5.37,12,12,12h60c6.63,0,12-5.37,12-12h0v-19.02l-12,7.02v12h-60v-96Z"/><polyline class="mt-logo-stroke-r" points="147.76 96.87 147.76 120.87 171.76 120.87"/><line class="mt-logo-stroke" x1="165.76" y1="150.87" x2="117.76" y2="150.87"/><line class="mt-logo-stroke" x1="171.76" y1="174.87" x2="117.76" y2="174.87"/><text class="mt-logo-name" transform="translate(267.79 156.69)"><tspan x="0" y="0">MediaTrack</tspan></text><text class="mt-logo-sub" transform="translate(271.92 216.76)"><tspan x="0" y="0">Media Transfer Tracking</tspan></text></svg>
@@ -6252,6 +6274,7 @@ async function saveDevices(){
 /* == FORM SUBMIT == */
 document.getElementById('mainForm').addEventListener('submit',async e=>{
   e.preventDefault();
+  if(!navigator.onLine){toast('No internet connection — cannot submit','err');return;}
   if(isGuest()){toast('Guest mode cannot submit data','err');return;}
   // Supabase -- no GAS URL needed
   const crewIdx=document.getElementById('f-crew').value;
@@ -6514,27 +6537,66 @@ function _startRealtimeSync(){
     if(_realtimeChannel){ sb.removeChannel(_realtimeChannel); _realtimeChannel=null; }
     const eventId = getActiveEventId();
     if(!eventId) return;
+
     _realtimeChannel = sb
-      .channel('transfers-sync-'+eventId)
+      .channel('mediatrack-sync-'+eventId)
+
+      // transfers — instant log update
       .on('postgres_changes',{
-        event: '*',
-        schema: 'public',
-        table: 'transfers',
+        event: '*', schema: 'public', table: 'transfers',
         filter: 'event_id=eq.'+eventId
       }, (payload)=>{
-        console.log('[realtime] change detected:', payload.eventType);
+        console.log('[realtime] transfers:', payload.eventType);
         const activePage=document.querySelector('.page.active');
         if(activePage&&(activePage.id==='page-dashboard'||activePage.id==='page-crew')){
           loadData(true);
         }
       })
+
+      // events — sync jika admin edit/tambah event
+      .on('postgres_changes',{
+        event: '*', schema: 'public', table: 'events'
+      }, (payload)=>{
+        console.log('[realtime] events:', payload.eventType);
+        loadEventsFromSupabase().catch(()=>{});
+      })
+
+      // workspace_members — sync jika crew ditambah/dihapus
+      .on('postgres_changes',{
+        event: '*', schema: 'public', table: 'workspace_members'
+      }, (payload)=>{
+        console.log('[realtime] crew:', payload.eventType);
+        const evId = getActiveEventId();
+        if(evId) sbPullCrewAndSchedule(evId).catch(()=>{});
+      })
+
       .subscribe((status)=>{
         console.log('[realtime] status:', status);
       });
+
   }catch(e){
     console.warn('[realtime] failed to start:', e);
   }
 }
+
+/* ── OFFLINE DETECTION ── */
+function _setOffline(isOffline){
+  const banner = document.getElementById('offline-banner');
+  if(!banner) return;
+  if(isOffline){
+    banner.classList.add('visible');
+    document.body.classList.add('is-offline');
+  } else {
+    banner.classList.remove('visible');
+    document.body.classList.remove('is-offline');
+    loadData(true); // reload data once back online
+    toast('Back online — data refreshed','ok');
+  }
+}
+window.addEventListener('online',  ()=>_setOffline(false));
+window.addEventListener('offline', ()=>_setOffline(true));
+// Check initial state
+if(!navigator.onLine) _setOffline(true);
 
 /* == SCHEDULE STRIP (form sidebar) == */
 let _stripClockTimer=null;
