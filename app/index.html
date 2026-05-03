@@ -6297,13 +6297,18 @@ document.getElementById('mainForm').addEventListener('submit',async e=>{
     crewName=crew.name; crewRole=crew.role;
   }
 
-  const btn=document.getElementById('submitBtn');
-  btn.disabled=true;btn.innerHTML='<span class="spin"></span> Saving...';
+  // Validate event
+  if(!getActiveEventId()){toast('No active event — select or create an event first','err');return;}
+
+  // Validate filesize BEFORE disabling button
   const fsRaw=parseFloat((v('f-filesize')||'0').replace(',','.'))||0;
   if(!fsRaw||fsRaw<=0){toast('Enter a valid Total Filesize','err');return;}
+
+  const btn=document.getElementById('submitBtn');
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span> Saving...';
   const fsUnit=document.getElementById('f-filesize-unit').value;
   const filesizeMB=fsUnit==='TB'?fsRaw*1024*1024:fsUnit==='GB'?fsRaw*1024:fsRaw;
-  const payload={action:'submit',eventId:getActiveEventId(),nama:crewName,peran:crewRole,stage:v('f-stage'),slot:v('f-slot'),camera:(v('f-camera')==='__manual__' ? (document.getElementById('f-camera-manual')?.value.trim()||'') : v('f-camera')),status:document.getElementById('f-status')?.value||'transferred',media:v('f-media'),jumlah:0,filesize:filesizeMB,storage:v('f-storage'),catatan:v('f-catatan'),dm:currentUser,timestamp:new Date().toLocaleString(DMT_CONFIG.locale,{timeZone:DMT_CONFIG.timezone,hour12:false})};
+  const payload={action:'submit',eventId:getActiveEventId(),nama:crewName,peran:crewRole,stage:v('f-stage'),slot:v('f-slot'),camera:(v('f-camera')==='__manual__'?(document.getElementById('f-camera-manual')?.value.trim()||''):v('f-camera')),status:document.getElementById('f-status')?.value||'transferred',media:v('f-media'),jumlah:0,filesize:filesizeMB,storage:v('f-storage'),catatan:v('f-catatan'),dm:currentUser,timestamp:new Date().toLocaleString(DMT_CONFIG.locale,{timeZone:DMT_CONFIG.timezone,hour12:false})};
   try{
     await sbSubmitTransfer(payload);
     // Save last-used storage for smart default
