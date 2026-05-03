@@ -813,6 +813,8 @@ tbody tr:hover .row-actions{opacity:1}
 
 /* ── SETTINGS TABS ── */
 .settings-tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:2px solid var(--border);padding-bottom:0}
+.stab-label-short{display:none}
+.stab-label-full{display:inline}
 .stab{
   display:flex;align-items:center;gap:7px;
   padding:9px 16px;border-radius:var(--r-sm) var(--r-sm) 0 0;
@@ -4049,6 +4051,8 @@ function bootApp(sess){
         sbPullCrewAndSchedule(_evId).catch(e=>console.warn('[boot] pullCrew failed:',e.message));
         syncDevicesFromSupabase();
       }
+      // Start realtime AFTER workspace is confirmed loaded
+      _startRealtimeSync();
     })
     .catch(e=>console.warn('[boot] boot chain failed:',e.message));
 
@@ -6526,8 +6530,6 @@ function startAutoRefresh(){
   _freshnessTimer=setInterval(_updateFreshnessLabel,5000);
   // Start JWT refresh cycle
   startTokenRefresh();
-  // Supabase Realtime — instant sync antar device
-  _startRealtimeSync();
 }
 
 let _realtimeChannel = null;
@@ -7022,7 +7024,16 @@ async function syncAllToCloud(){
   const statusEl = document.getElementById('sync-status');
   if(!_authToken){ toast('Login required','err'); return; }
 
-  const wsId = getWorkspaceId();
+  // Jika workspace belum load, coba sync dulu sebelum fail
+  let wsId = getWorkspaceId();
+  if(!wsId){
+    try{
+      await syncWorkspaceFromSupabase();
+      wsId = getWorkspaceId();
+    }catch(e){
+      console.warn('[syncAllToCloud] workspace retry failed:', e.message);
+    }
+  }
   if(!wsId){ toast('Workspace not loaded — please logout and login again','err'); return; }
 
   btn.disabled = true;
