@@ -62,9 +62,23 @@ nav.scrolled{box-shadow:0 2px 24px rgba(13,27,62,.07)}
   background:var(--grad);color:#fff;
   font-size:13px;font-weight:700;text-decoration:none;
   box-shadow:0 3px 14px var(--glow);
-  transition:all .18s;letter-spacing:-.1px
+  transition:box-shadow .4s ease,transform .3s ease,text-shadow .4s ease;
+  letter-spacing:-.1px;
+  position:relative;overflow:hidden;
 }
-.nav-cta:hover{background:var(--grad2);box-shadow:0 5px 20px var(--glow);transform:translateY(-1px)}
+.nav-cta::before{
+  content:'';position:absolute;inset:0;border-radius:inherit;
+  background:var(--grad2);opacity:0;
+  transition:opacity .5s ease;
+  z-index:0;
+}
+.nav-cta span,.nav-cta svg{position:relative;z-index:1}
+.nav-cta:hover::before{opacity:1}
+.nav-cta:hover{
+  box-shadow:0 5px 22px rgba(0,180,216,.45),0 0 0 1px rgba(126,239,192,.15);
+  transform:translateY(-1px);
+  text-shadow:0 0 12px rgba(126,239,192,.6);
+}
 
 /* ─── HERO ─── */
 .hero{
@@ -104,10 +118,25 @@ nav.scrolled{box-shadow:0 2px 24px rgba(13,27,62,.07)}
 .btn-primary{
   padding:14px 28px;background:var(--grad);color:#fff;
   border-radius:var(--r-sm);font-size:14px;font-weight:700;text-decoration:none;
-  box-shadow:0 4px 20px var(--glow);transition:all .18s;letter-spacing:-.1px;
+  box-shadow:0 4px 20px var(--glow);
+  transition:box-shadow .4s ease,transform .3s ease,text-shadow .4s ease;
+  letter-spacing:-.1px;
   display:flex;align-items:center;gap:8px;
+  position:relative;overflow:hidden;
 }
-.btn-primary:hover{background:var(--grad2);transform:translateY(-2px);box-shadow:0 8px 28px var(--glow)}
+.btn-primary::before{
+  content:'';position:absolute;inset:0;border-radius:inherit;
+  background:var(--grad2);opacity:0;
+  transition:opacity .5s ease;
+  z-index:0;
+}
+.btn-primary:hover::before{opacity:1}
+.btn-primary:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 32px rgba(0,180,216,.5),0 0 0 1px rgba(126,239,192,.2);
+  text-shadow:0 0 14px rgba(126,239,192,.65);
+}
+.btn-primary > *{position:relative;z-index:1}
 .btn-secondary{
   padding:14px 24px;background:var(--surface);color:var(--ink2);
   border:1.5px solid var(--border);border-radius:var(--r-sm);
@@ -115,7 +144,7 @@ nav.scrolled{box-shadow:0 2px 24px rgba(13,27,62,.07)}
   display:flex;align-items:center;gap:8px;
 }
 .btn-secondary:hover{border-color:var(--teal);color:var(--teal2);background:rgba(0,180,216,.03)}
-.btn-arrow{transition:transform .15s}
+.btn-arrow{transition:transform .2s ease;position:relative;z-index:1}
 .btn-primary:hover .btn-arrow{transform:translateX(3px)}
 
 /* ─── HERO SCREENSHOT ─── */
@@ -381,6 +410,10 @@ footer{
 .footer-col h4{font-size:11px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:.8px;text-transform:uppercase;font-family:var(--mono);margin-bottom:14px}
 .footer-col a{display:block;font-size:13px;color:rgba(255,255,255,.55);text-decoration:none;margin-bottom:9px;transition:color .15s}
 .footer-col a:hover{color:#fff}
+.footer-col-grid .footer-links{
+  display:grid;grid-template-columns:1fr 1fr;gap:4px 28px;
+}
+.footer-col-grid .footer-links a{margin-bottom:0;padding:5px 0}
 .footer-bottom{
   max-width:1060px;margin:36px auto 0;
   border-top:1px solid rgba(255,255,255,.06);
@@ -562,7 +595,7 @@ footer{
       <a href="#how-it-works" class="nav-link">How It Works</a>
       <a href="#use-cases" class="nav-link">Use Cases</a>
     </div>
-    <a href="https://mediatrack.pages.dev/app" class="nav-cta">Open App →</a>
+    <a href="https://mediatrack.pages.dev/app" class="nav-cta"><span>Open App →</span></a>
   </div>
 </nav>
 
@@ -576,7 +609,7 @@ footer{
   <p class="hero-sub">Record, monitor, and verify every file transfer from camera to storage. Zero guesswork, zero data loss.</p>
   <div class="hero-actions">
     <a href="https://mediatrack.pages.dev/app" class="btn-primary">
-      Start Free Today
+      <span>Start Free Today</span>
       <svg class="btn-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
     </a>
     <a href="#how-it-works" class="btn-secondary">
@@ -1114,12 +1147,14 @@ footer{
       </a>
       <p>Media Transfer Tracking for Production Teams.</p>
     </div>
-    <div class="footer-col">
+    <div class="footer-col footer-col-grid">
       <h4>Product</h4>
-      <a href="#features">Features</a>
-      <a href="#how-it-works">How It Works</a>
-      <a href="#use-cases">Use Cases</a>
-      <a href="https://mediatrack.pages.dev/app">Open App</a>
+      <div class="footer-links">
+        <a href="#features">Features</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="#use-cases">Use Cases</a>
+        <a href="https://mediatrack.pages.dev/app">Open App</a>
+      </div>
     </div>
   </div>
   <div class="footer-bottom">
