@@ -1725,8 +1725,8 @@ body.is-offline .mnav-center-icon{opacity:.5;cursor:not-allowed}
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
                 Test Connection
               </button>
-              <!-- Sync to Cloud -->
-              <div style="margin-top:12px;padding:12px;border-radius:var(--r-sm);background:var(--bg);border:1.5px solid var(--border2)">
+              <!-- Sync to Cloud — hidden, auto-sync via Supabase Realtime -->
+              <div style="display:none;margin-top:12px;padding:12px;border-radius:var(--r-sm);background:var(--bg);border:1.5px solid var(--border2)">
                 <div style="font-size:11px;font-weight:700;color:var(--ink);margin-bottom:4px;display:flex;align-items:center;gap:6px">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>
                   Sync Local → Cloud
@@ -6199,8 +6199,11 @@ async function syncDevicesFromSupabase(){
     if(Array.isArray(devs)&&devs.length){
       localStorage.setItem(_uk(DEVICES_KEY)+'_'+getActiveEventId(),JSON.stringify(devs));
       buildDeviceDropdown();renderDeviceSettings();renderStorageStats();
+      console.log('[sync] devices updated from Supabase:', devs.length);
     }
-  }catch(e){/* fallback ke cache localStorage */}
+  }catch(e){
+    console.warn('[sync] devices fallback to localStorage:', e.message);
+  }
 }
 
 function buildDeviceDropdown(){
@@ -6576,6 +6579,15 @@ function _startRealtimeSync(){
         console.log('[realtime] crew:', payload.eventType);
         const evId = getActiveEventId();
         if(evId) sbPullCrewAndSchedule(evId).catch(()=>{});
+      })
+
+      // devices — sync storage devices antar device
+      .on('postgres_changes',{
+        event: '*', schema: 'public', table: 'devices',
+        filter: 'event_id=eq.'+eventId
+      }, (payload)=>{
+        console.log('[realtime] devices:', payload.eventType);
+        syncDevicesFromSupabase();
       })
 
       .subscribe((status)=>{
