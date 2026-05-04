@@ -2884,19 +2884,28 @@ async function sbResetTransfers(eventId){
 
 // GET devices for an event -> [{name, capacityGB}, ...]
 async function sbGetDevices(eventId){
-  const rows=await wsGet('devices',{'select':'name,capacity_gb','event_id':'eq.'+eventId,'order':'id.asc'});
-  return rows.map(r=>({name:r.name, capacityGB:parseFloat(r.capacity_gb)||0})).filter(r=>r.name);
+  const rows=await wsGet('devices',{'select':'devices','event_id':'eq.'+eventId,'order':'id.asc'});
+  if(!rows.length) return [];
+  // devices column is JSONB array of {name, capacityGB}
+  const raw = rows[0].devices;
+  if(!Array.isArray(raw)) return [];
+  return raw.map(d=> typeof d==='string'?{name:d,capacityGB:0}:{name:d.name||d,capacityGB:parseFloat(d.capacityGB||d.capacity_gb)||0}).filter(d=>d.name);
 }
 
-// SAVE devices for an event -> delete all + insert new
+// SAVE devices for an event -> upsert single row with JSONB array
 async function sbSaveDevices(eventId, devices){
-  await wsDelete('devices',{'event_id':'eq.'+eventId}).catch(()=>{});
-  if(!devices.length)return [];
-  return wsInsert('devices', devices.map(d=>{
-    const name = typeof d==='string'?d:(d.name||d);
-    const capacityGB = typeof d==='object'?(parseFloat(d.capacityGB)||0):0;
-    return {event_id:eventId, workspace_id:getWorkspaceId()||null, name, capacity_gb:capacityGB};
-  }));
+  const payload = {
+    event_id:     eventId,
+    workspace_id: getWorkspaceId()||null,
+    devices:      devices.map(d=>({name:d.name||d, capacityGB:parseFloat(d.capacityGB)||0}))
+  };
+  // Try update first, then insert if not exists
+  const existing = await wsGet('devices',{'event_id':'eq.'+eventId,'select':'id'}).catch(()=>[]);
+  if(existing.length){
+    return wsUpdate('devices',{'event_id':'eq.'+eventId}, {devices: payload.devices, workspace_id: payload.workspace_id});
+  } else {
+    return wsInsert('devices', payload);
+  }
 }
 
 /* == SUPABASE EVENTS SYNC == */
