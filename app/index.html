@@ -821,6 +821,7 @@ tbody tr:hover .row-actions{opacity:1}
   background:var(--bg);border:1.5px solid var(--border);
   cursor:pointer;font-family:var(--sans);font-size:11px;font-weight:600;
   color:var(--dim);transition:all .15s;letter-spacing:.01em;
+  width:auto;flex-shrink:0;white-space:nowrap;
 }
 .btn-reset:hover{background:var(--red-bg);border-color:rgba(232,56,79,.25);color:var(--red);}
 .btn-reset svg{flex-shrink:0;opacity:.6;transition:transform .3s,opacity .15s}
@@ -1798,7 +1799,7 @@ body.is-offline .mnav-center-icon{opacity:.5;cursor:not-allowed}
                 </button>
               </div>
               <div class="danger-zone-body" id="dz-body">
-                <p>This action cannot be undone. Deleted data will be permanently removed from Google Sheets.</p>
+                <p>This action cannot be undone. Deleted data will be permanently removed from the database.</p>
                 <div class="danger-btns">
                   <button class="btn-reset" onclick="confirmReset('log')">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
@@ -7683,7 +7684,7 @@ let _pinBuffer = '';
 
 function openDangerPin(){
   if(DANGER_PIN === null){
-    toast('Danger Zone is locked — configure dangerPin in DMT_CONFIG to enable access.','err');
+    toast('Danger Zone is locked — contact your workspace admin to enable access.','err');
     return;
   }
   _pinBuffer='';
@@ -7763,9 +7764,12 @@ async function executeReset(){
   btn.disabled=true;btn.innerHTML='<span class="spin"></span> Resetting...';
   try{
     const allEvs=getEvents();
+    const wsId=getWorkspaceId();
+    const wsFilter=wsId?{'workspace_id':'eq.'+wsId}:{};
+    const evIds=allEvs.map(ev=>ev.id);
 
-    // -- Wipe ALL transfers from Supabase (all events, no filter) --
-    await sbDelete('transfers',{});
+    // -- Wipe ALL transfers for this workspace only --
+    await sbDelete('transfers', wsFilter);
 
     // -- Clear frontend immediately --
     rows=[];
@@ -7775,22 +7779,26 @@ async function executeReset(){
     renderStorageStats();
 
     if(_resetType==='all'){
-      // -- Wipe ALL devices from Supabase --
-      await sbDelete('devices',{});
+      // -- Wipe devices for this workspace --
+      await sbDelete('devices', wsFilter);
 
-      // -- Clear localStorage: every event's keys --
+      // -- Wipe app_config (crew, cameras, schedule) for this workspace --
+      await sbDelete('app_config', wsFilter).catch(e=>console.warn('[reset] app_config delete:',e.message));
+
+      // -- Wipe events for this workspace --
+      await sbDelete('events', wsFilter).catch(e=>console.warn('[reset] events delete:',e.message));
+
+      // -- Clear localStorage for all event-scoped keys --
       allEvs.forEach(ev=>{
         localStorage.removeItem(DEVICES_KEY+'_'+ev.id);
         localStorage.removeItem('dmt_sheet_url_'+ev.id);
         localStorage.removeItem('dmt_crew_'+ev.id);
         localStorage.removeItem('dmt_schedule_'+ev.id);
       });
-      // Global (non-event-scoped) keys
+      // Global keys
       localStorage.removeItem(DEVICES_KEY);
       localStorage.removeItem(_uk(CREW_KEY));
       localStorage.removeItem(_uk(SCHED_KEY));
-
-      // -- Wipe events list -> blank slate --
       localStorage.removeItem(_eventsKey());
       localStorage.removeItem(_activeEvKey());
 
@@ -7799,13 +7807,14 @@ async function executeReset(){
       renderSidebarEvents();
       closeConfirmReset();
       lockDangerZone();
-      toast('(ok) All data cleared. Create a new event to start fresh.','ok');
+      toast('All data cleared. Create a new event to start fresh.','ok');
       setTimeout(()=>showNoEventState(),100);
     } else {
       closeConfirmReset();
-      toast('(ok) Transfer log cleared','ok');
+      toast('Transfer log cleared','ok');
     }
   }catch(err){
+    console.error('[executeReset] failed:',err.message);
     toast('Reset failed: '+x(err.message),'err');
   }finally{
     btn.disabled=false;btn.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:4px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>Yes, Reset';
