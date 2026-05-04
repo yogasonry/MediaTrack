@@ -6273,9 +6273,10 @@ async function saveDevices(){
   // 2. Persist ke Supabase (background)
   try{
     await sbSaveDevices(getActiveEventId(),devs);
-    toast(`${devs.length} devices saved & synced (ok)`,'ok');
-  }catch{
-    toast(`${devs.length} devices saved locally`,'ok');
+    toast(`${devs.length} devices saved & synced`,'ok');
+  }catch(e){
+    console.error('[saveDevices] Supabase error:', e.message);
+    toast(`${devs.length} devices saved locally — sync failed: ${e.message}`,'err');
   }
 }
 
