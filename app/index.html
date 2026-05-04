@@ -1812,10 +1812,16 @@ body.is-offline .mnav-center-icon{opacity:.5;cursor:not-allowed}
                     <span style="margin-left:auto;font-size:10px;opacity:.8;font-family:var(--mono);font-weight:400">log + device list</span>
                   </button>
                 </div>
-                <button onclick="lockDangerZone()" style="margin-top:12px;background:none;border:none;cursor:pointer;font-size:11px;color:var(--dim);font-family:var(--mono);display:flex;align-items:center;gap:5px">
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-                  Lock again
-                </button>
+                <div style="margin-top:12px;display:flex;gap:12px;align-items:center">
+                  <button onclick="lockDangerZone()" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--dim);font-family:var(--mono);display:flex;align-items:center;gap:5px">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                    Lock again
+                  </button>
+                  <button onclick="_userDangerPin=null;lockDangerZone();openDangerPin();" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--dim);font-family:var(--mono);display:flex;align-items:center;gap:5px">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+                    Change PIN
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -4077,6 +4083,7 @@ function bootApp(sess){
     .catch(e=>console.warn('[boot] boot chain failed:',e.message));
 
   startAutoRefresh();
+  loadUserDangerPin(); // load per-user danger zone PIN
   if(typeof initCrewFromStorage === 'function') initCrewFromStorage();
   if(typeof initScheduleFromStorage === 'function') initScheduleFromStorage();
   if(typeof updateCrewBadge === 'function') updateCrewBadge();
@@ -7666,30 +7673,63 @@ const RESET_COLORS={
   log:{title:'Reset Transfer Log',sub:'Delete all transfer data',desc:'All transfer data in the spreadsheet will be permanently deleted. Device list will be kept. This action <strong>cannot be undone</strong>.'},
   all:{title:'Reset All',sub:'Wipe everything -- fresh start',desc:'All transfers, devices, events, crew, and schedule data will be <strong>permanently deleted</strong>. The app returns to a blank slate. This action <strong>cannot be undone</strong>.'},
 };
-/* == DANGER ZONE PIN == */
-const DANGER_PIN = (()=>{
-  const p = DMT_CONFIG.dangerPin || '';
-  if(!p){
-    // Empty string = intentionally no PIN configured, Danger Zone disabled — silent
-    return null;
-  }
-  if(p === '0000'){
-    // Default PIN still set — warn once and block access
-    console.warn('[security] dangerPin is still default (0000). Danger Zone is locked. Set a custom PIN in DMT_CONFIG.dangerPin.');
-    return null;
-  }
-  return p;
-})();
+/* == DANGER ZONE PIN (per-user, stored in Supabase) == */
 let _pinBuffer = '';
+let _userDangerPin = null; // loaded from workspace_members
+
+async function loadUserDangerPin(){
+  try{
+    const sb = _getSbClient();
+    if(!sb||!_authUserId) return;
+    const {data,error} = await sb
+      .from('workspace_members')
+      .select('danger_pin')
+      .eq('user_id',_authUserId)
+      .single();
+    if(!error && data) _userDangerPin = data.danger_pin || null;
+  }catch(e){ console.warn('[pin] load failed:',e.message); }
+}
+
+async function saveUserDangerPin(pin){
+  try{
+    const sb = _getSbClient();
+    if(!sb||!_authUserId) return;
+    await sb.from('workspace_members')
+      .update({danger_pin: pin})
+      .eq('user_id',_authUserId);
+    _userDangerPin = pin;
+  }catch(e){ console.warn('[pin] save failed:',e.message); }
+}
 
 function openDangerPin(){
-  if(DANGER_PIN === null){
-    toast('Danger Zone is locked — contact your workspace admin to enable access.','err');
-    return;
-  }
+  if(!_authToken){ toast('Login required','err'); return; }
   _pinBuffer='';
   updatePinDots();
   const _pem=document.getElementById('pin-error-msg');if(_pem)_pem.textContent='';
+
+  // If user has no PIN yet — prompt to set one first
+  if(!_userDangerPin){
+    _showSetPinFlow();
+    return;
+  }
+  // Show normal unlock modal
+  const title = document.querySelector('.pin-modal-title');
+  if(title) title.textContent = 'Enter your PIN';
+  document.getElementById('pin-modal')?.classList.remove('hidden');
+}
+
+let _setPinMode = false;
+let _setPinFirst = '';
+
+function _showSetPinFlow(){
+  _setPinMode = true;
+  _setPinFirst = '';
+  _pinBuffer = '';
+  updatePinDots();
+  const title = document.querySelector('.pin-modal-title');
+  if(title) title.textContent = 'Set your Danger Zone PIN';
+  const _pem=document.getElementById('pin-error-msg');
+  if(_pem) _pem.textContent = 'Choose a 4-digit PIN only you will know.';
   document.getElementById('pin-modal')?.classList.remove('hidden');
 }
 function closeDangerPin(){
@@ -7715,13 +7755,51 @@ function updatePinDots(){
     d.classList.remove('error');
   }
 }
-function checkPin(){
-  if(DANGER_PIN === null){
-    toast('PIN not configured.','err');
+async function checkPin(){
+  // SET PIN FLOW — first entry
+  if(_setPinMode && !_setPinFirst){
+    _setPinFirst = _pinBuffer;
+    _pinBuffer = '';
+    updatePinDots();
+    const title = document.querySelector('.pin-modal-title');
+    if(title) title.textContent = 'Confirm your PIN';
+    const _pem=document.getElementById('pin-error-msg');
+    if(_pem) _pem.textContent = 'Enter the same PIN again to confirm.';
+    return;
+  }
+  // SET PIN FLOW — confirm entry
+  if(_setPinMode && _setPinFirst){
+    if(_pinBuffer === _setPinFirst){
+      await saveUserDangerPin(_pinBuffer);
+      _setPinMode = false;
+      _setPinFirst = '';
+      closeDangerPin();
+      // Immediately unlock after setting PIN
+      document.getElementById('dz-locked').style.display='none';
+      document.getElementById('dz-body').style.display='block';
+      toast('PIN set successfully — Danger Zone unlocked','ok');
+    } else {
+      for(let i=0;i<4;i++) document.getElementById('pd'+i).classList.add('error');
+      const _pem=document.getElementById('pin-error-msg');
+      if(_pem) _pem.textContent = "PINs don't match — try again";
+      setTimeout(()=>{
+        _pinBuffer='';_setPinFirst='';
+        updatePinDots();
+        const title=document.querySelector('.pin-modal-title');
+        if(title) title.textContent='Set your Danger Zone PIN';
+        const _pem2=document.getElementById('pin-error-msg');
+        if(_pem2) _pem2.textContent='Choose a 4-digit PIN only you will know.';
+      },900);
+    }
+    return;
+  }
+  // NORMAL UNLOCK FLOW
+  if(!_userDangerPin){
+    toast('No PIN set — please set your PIN first','err');
     closeDangerPin();
     return;
   }
-  if(_pinBuffer===DANGER_PIN){
+  if(_pinBuffer===_userDangerPin){
     closeDangerPin();
     document.getElementById('dz-locked').style.display='none';
     document.getElementById('dz-body').style.display='block';
