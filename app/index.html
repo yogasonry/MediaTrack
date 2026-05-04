@@ -815,6 +815,16 @@ tbody tr:hover .row-actions{opacity:1}
 .settings-tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:2px solid var(--border);padding-bottom:0}
 .stab-label-short{display:none}
 .stab-label-full{display:inline}
+.btn-reset{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 12px;border-radius:var(--r-sm);
+  background:none;border:1.5px solid var(--border2);
+  cursor:pointer;font-family:var(--mono);font-size:11px;font-weight:600;
+  color:var(--dim);transition:all .15s;
+}
+.btn-reset:hover{background:var(--red-bg);border-color:rgba(232,56,79,.3);color:var(--red);}
+.btn-reset svg{flex-shrink:0;transition:transform .3s}
+.btn-reset:hover svg{transform:rotate(-180deg)}
 .stab{
   display:flex;align-items:center;gap:7px;
   padding:9px 16px;border-radius:var(--r-sm) var(--r-sm) 0 0;
@@ -1852,8 +1862,8 @@ body.is-offline .mnav-center-icon{opacity:.5;cursor:not-allowed}
 
               <!-- Footer -->
               <div style="padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:flex-end">
-                <button onclick="resetCrewToDefault()" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--dim);font-family:var(--mono);display:flex;align-items:center;gap:5px;padding:4px 0" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--dim)'">
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+                <button onclick="resetCrewToDefault()" class="btn-reset">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
                   Reset to defaults
                 </button>
               </div>
@@ -1902,8 +1912,8 @@ body.is-offline .mnav-center-icon{opacity:.5;cursor:not-allowed}
 
               <!-- Footer -->
               <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:flex-end">
-                <button onclick="resetScheduleToDefault()" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--dim);font-family:var(--mono);display:flex;align-items:center;gap:5px;padding:4px 0" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--dim)'">
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+                <button onclick="resetScheduleToDefault()" class="btn-reset">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
                   Reset to defaults
                 </button>
               </div>
@@ -1968,8 +1978,8 @@ body.is-offline .mnav-center-icon{opacity:.5;cursor:not-allowed}
               <!-- Footer -->
               <div style="padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
                 <button onclick="addCamera()" class="add-device-btn" style="border:1.5px dashed var(--border2)">+ Add manually</button>
-                <button onclick="resetCamerasToDefault()" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--dim);font-family:var(--mono);display:flex;align-items:center;gap:5px;padding:4px 0" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--dim)'">
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+                <button onclick="resetCamerasToDefault()" class="btn-reset">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
                   Reset to defaults
                 </button>
               </div>
@@ -5791,9 +5801,10 @@ async function saveCameras(){
       workspace_id: getWorkspaceId() || null,
       value:        unique
     }, 'key,event_id');
-    toast(`${unique.length} camera${unique.length !== 1 ? 's' : ''} saved`, 'ok');
-  }catch{
-    toast(`${unique.length} camera${unique.length !== 1 ? 's' : ''} saved locally`, 'ok');
+    toast(`${unique.length} camera${unique.length !== 1 ? 's' : ''} saved & synced`, 'ok');
+  }catch(e){
+    console.error('[saveCameras] sync failed:', e.message);
+    toast(`Cameras saved locally — sync failed`, 'err');
   }
 }
 
@@ -8137,7 +8148,7 @@ async function removeCrewRow(i) {
   updateCrewBadge();
   renderCrewSettings();
   // Sync ke Supabase
-  try { await sbUpsert('app_config',{key:'crew',event_id:getActiveEventId(),workspace_id:getWorkspaceId()||null,value:data},'key,event_id'); } catch {}
+  try { await sbUpsert('app_config',{key:'crew',event_id:getActiveEventId(),workspace_id:getWorkspaceId()||null,value:data},'key,event_id'); } catch(e){ console.error('[saveCrew] sync failed:',e.message); }
 }
 
 function collectCrewFromUI() {
@@ -8180,8 +8191,8 @@ async function saveCrew() {
   buildDynamicSelects();
   toast('Crew saved (' + data.length + ' member' + (data.length !== 1 ? 's' : '') + ')', 'ok');
   // Sync crew to Supabase app_config
-  try { await sbUpsert('app_config',{key:'crew',event_id:getActiveEventId(),workspace_id:getWorkspaceId()||null,value:data},'key,event_id'); } catch {}
-  if(uniqueRoles.length){ try { await sbUpsert('app_config',{key:'crewFocus',event_id:getActiveEventId(),workspace_id:getWorkspaceId()||null,value:uniqueRoles},'key,event_id'); } catch {} }
+  try { await sbUpsert('app_config',{key:'crew',event_id:getActiveEventId(),workspace_id:getWorkspaceId()||null,value:data},'key,event_id'); } catch(e){ console.error('[saveCrew] sync failed:',e.message); }
+  if(uniqueRoles.length){ try { await sbUpsert('app_config',{key:'crewFocus',event_id:getActiveEventId(),workspace_id:getWorkspaceId()||null,value:uniqueRoles},'key,event_id'); } catch(e){ console.error('[saveCrew crewFocus] sync failed:',e.message); } }
 }
 
 async function resetCrewToDefault() {
@@ -8207,7 +8218,7 @@ async function resetCrewToDefault() {
   buildDynamicSelects();
   toast('Crew reset to defaults', 'ok');
   // Sync ke Supabase
-  try { await sbUpsert('app_config',{key:'crew',event_id:getActiveEventId(),workspace_id:getWorkspaceId()||null,value:defaultCrew},'key,event_id'); } catch {}
+  try { await sbUpsert('app_config',{key:'crew',event_id:getActiveEventId(),workspace_id:getWorkspaceId()||null,value:defaultCrew},'key,event_id'); } catch(e){ console.error('[saveCrew reset] sync failed:',e.message); }
 }
 
 /* == SCHEDULE SETTINGS == */
@@ -8507,7 +8518,7 @@ async function deleteStage(stage) {
   renderScheduleSettings();
   toast('Scene "' + stage + '" deleted', 'ok');
   // Sync ke Supabase
-  try { await sbUpsert('app_config',{key:'schedule',event_id:getActiveEventId(),workspace_id:getWorkspaceId()||null,value:data},'key,event_id'); } catch {}
+  try { await sbUpsert('app_config',{key:'schedule',event_id:getActiveEventId(),workspace_id:getWorkspaceId()||null,value:data},'key,event_id'); } catch(e){ console.error('[saveSchedule] sync failed:',e.message); }
 }
 
 async function saveScheduleSettings() {
@@ -8529,7 +8540,7 @@ async function saveScheduleSettings() {
   toast('Scene list saved (' + Object.keys(data).length + ' scene' + (Object.keys(data).length !== 1 ? 's' : '') + ')', 'ok');
   // Sync to GAS AppConfig
   // Sync schedule to Supabase app_config
-  try { await sbUpsert('app_config',{key:'schedule',event_id:getActiveEventId(),workspace_id:getWorkspaceId()||null,value:data},'key,event_id'); } catch {}
+  try { await sbUpsert('app_config',{key:'schedule',event_id:getActiveEventId(),workspace_id:getWorkspaceId()||null,value:data},'key,event_id'); } catch(e){ console.error('[saveSchedule] sync failed:',e.message); }
 }
 
 async function resetScheduleToDefault() {
@@ -8557,7 +8568,7 @@ async function resetScheduleToDefault() {
   renderScheduleSettings();
   toast('Scene list reset to defaults', 'ok');
   // Sync ke Supabase
-  try { await sbUpsert('app_config',{key:'schedule',event_id:getActiveEventId(),workspace_id:getWorkspaceId()||null,value:defaultSched},'key,event_id'); } catch {}
+  try { await sbUpsert('app_config',{key:'schedule',event_id:getActiveEventId(),workspace_id:getWorkspaceId()||null,value:defaultSched},'key,event_id'); } catch(e){ console.error('[saveSchedule reset] sync failed:',e.message); }
 }
 
 /* Preserve original defaults on first load */
