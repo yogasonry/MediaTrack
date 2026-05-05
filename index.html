@@ -52,7 +52,19 @@
 html{scroll-behavior:smooth}
 body{font-family:var(--sans);color:var(--ink);background:var(--surface);-webkit-font-smoothing:antialiased;overflow-x:hidden}
 
-/* ─── NAV ─── */
+/* ─── LANG TOGGLE ─── */
+.lang-toggle{
+  display:flex;align-items:center;gap:0;
+  background:var(--bg);border:1.5px solid var(--border);
+  border-radius:99px;padding:3px;margin-right:10px;
+}
+.lang-btn{
+  padding:4px 11px;border-radius:99px;border:none;background:none;
+  font-family:var(--mono);font-size:11px;font-weight:700;
+  color:var(--dim);cursor:pointer;transition:all .15s;letter-spacing:.3px;
+}
+.lang-btn.active{background:var(--navy);color:#fff;}
+
 nav {
   position:fixed;top:0;left:0;right:0;z-index:100;
   background:rgba(255,255,255,.85);backdrop-filter:blur(16px);
@@ -609,11 +621,17 @@ footer{
       <img src="https://raw.githubusercontent.com/yogasonry/MediaTrack/main/Logo%20MediaTrack.png" alt="MediaTrack" class="nav-brand-logo">
     </a>
     <div class="nav-links">
-      <a href="#features" class="nav-link">Features</a>
-      <a href="#how-it-works" class="nav-link">How It Works</a>
-      <a href="#use-cases" class="nav-link">Use Cases</a>
+      <a href="#features" class="nav-link" data-i18n="nav.features">Features</a>
+      <a href="#how-it-works" class="nav-link" data-i18n="nav.how">How It Works</a>
+      <a href="#use-cases" class="nav-link" data-i18n="nav.cases">Use Cases</a>
     </div>
-    <a href="https://mediatrack.pages.dev/app" class="nav-cta"><span>Open App →</span></a>
+    <div style="display:flex;align-items:center">
+      <div class="lang-toggle">
+        <button class="lang-btn active" onclick="setLang('en')" id="btn-en">EN</button>
+        <button class="lang-btn" onclick="setLang('id')" id="btn-id">ID</button>
+      </div>
+      <a href="https://mediatrack.pages.dev/app" class="nav-cta"><span data-i18n="nav.cta">Open App →</span></a>
+    </div>
   </div>
 </nav>
 
@@ -621,18 +639,18 @@ footer{
 <section class="hero">
   <div class="hero-badge">
     <span class="hero-badge-dot"></span>
-    Built for Production Teams
+    <span data-i18n="hero.badge">Built for Production Teams</span>
   </div>
-  <h1>Track, Manage &amp; Secure<br><span>Every Media Transfer</span></h1>
-  <p class="hero-sub">Record, monitor, and verify every file transfer from camera to storage. Zero guesswork, zero data loss.</p>
+  <h1><span data-i18n="hero.h1a">Track, Manage &amp; Secure</span><br><span class="grad-text" data-i18n="hero.h1b">Every Media Transfer</span></h1>
+  <p class="hero-sub" data-i18n="hero.sub">Record, monitor, and verify every file transfer from camera to storage. Zero guesswork, zero data loss.</p>
   <div class="hero-actions">
     <a href="https://mediatrack.pages.dev/app" class="btn-primary">
-      <span>Start Free Today</span>
+      <span data-i18n="hero.cta">Start Free Today</span>
       <svg class="btn-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
     </a>
     <a href="#how-it-works" class="btn-secondary">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
-      See How It Works
+      <span data-i18n="hero.cta2">See How It Works</span>
     </a>
   </div>
 
@@ -793,15 +811,15 @@ footer{
 
 <!-- SOCIAL PROOF -->
 <div class="social-proof">
-  <p class="sp-label">Trusted at events across Indonesia</p>
+  <p class="sp-label" data-i18n="sp.label">Trusted at events across Indonesia</p>
   <div class="sp-items">
     <div class="sp-item">
       <div class="sp-icon navy">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--navy)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       </div>
       <div>
-        <div class="sp-item-name">Music Events</div>
-        <div class="sp-item-sub">Festivals & Live Productions</div>
+        <div class="sp-item-name" data-i18n="sp.music">Music Events</div>
+        <div class="sp-item-sub">Festivals & Live Productions" data-i18n="sp.music.sub</div>
       </div>
     </div>
     <div style="width:1px;height:36px;background:var(--border)"></div>
@@ -810,8 +828,8 @@ footer{
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--teal2)" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87m-4-12a4 4 0 010 7.75"/></svg>
       </div>
       <div>
-        <div class="sp-item-name">Film Production</div>
-        <div class="sp-item-sub">Wedding & Commercial Shoots</div>
+        <div class="sp-item-name" data-i18n="sp.film">Film Production</div>
+        <div class="sp-item-sub">Wedding & Commercial Shoots" data-i18n="sp.film.sub</div>
       </div>
     </div>
     <div style="width:1px;height:36px;background:var(--border)"></div>
@@ -820,8 +838,8 @@ footer{
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0a7a58" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
       </div>
       <div>
-        <div class="sp-item-name">100% Free</div>
-        <div class="sp-item-sub">During early access</div>
+        <div class="sp-item-name" data-i18n="sp.free">100% Free</div>
+        <div class="sp-item-sub" data-i18n="sp.free.sub">During early access</div>
       </div>
     </div>
     <div style="width:1px;height:36px;background:var(--border)"></div>
@@ -830,8 +848,8 @@ footer{
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--navy)" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
       </div>
       <div>
-        <div class="sp-item-name">Works Everywhere</div>
-        <div class="sp-item-sub">Browser-based, no install needed</div>
+        <div class="sp-item-name" data-i18n="sp.works">Works Everywhere</div>
+        <div class="sp-item-sub" data-i18n="sp.works.sub">Browser-based, no install needed</div>
       </div>
     </div>
   </div>
@@ -841,38 +859,38 @@ footer{
 <section class="problem-section" id="problem">
   <div class="container">
     <div class="animate">
-      <span class="section-tag tag-orange">The Problem</span>
-      <h2 class="section-title">Managing media files on<br>set can be chaotic.</h2>
-      <p class="section-sub">Every shoot, the same headaches. Files go missing, no one knows who moved what, storage runs out without warning.</p>
+      <span class="section-tag tag-orange" data-i18n="prob.tag">The Problem</span>
+      <h2 class="section-title" data-i18n="prob.title">Managing media files on<br>set can be chaotic.</h2>
+      <p class="section-sub" data-i18n="prob.sub">Every shoot, the same headaches. Files go missing, no one knows who moved what, storage runs out without warning.</p>
     </div>
     <div class="problem-grid">
       <div class="problem-card animate">
         <div class="problem-icon" style="background:rgba(232,56,79,.1)">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e8384f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         </div>
-        <h3>Files Get Lost</h3>
-        <p>No confirmation, no audit trail. Files disappear and nobody knows where they went.</p>
+        <h3 data-i18n="prob.1.h">Files Get Lost</h3>
+        <p data-i18n="prob.1.p">No confirmation, no audit trail. Files disappear and nobody knows where they went.</p>
       </div>
       <div class="problem-card animate">
         <div class="problem-icon" style="background:rgba(255,189,46,.12)">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b07a00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0112 0v2"/><line x1="12" y1="12" x2="12" y2="14"/><circle cx="12" cy="17" r="1" fill="#b07a00"/></svg>
         </div>
-        <h3>No Accountability</h3>
-        <p>Who transferred what? When? From which card? Nobody can say for certain.</p>
+        <h3 data-i18n="prob.2.h">No Accountability</h3>
+        <p data-i18n="prob.2.p">Who transferred what? When? From which card? Nobody can say for certain.</p>
       </div>
       <div class="problem-card animate">
         <div class="problem-icon" style="background:rgba(26,95,216,.1)">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1a5fd8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6" stroke-width="3"/><line x1="6" y1="18" x2="6.01" y2="18" stroke-width="3"/><path d="M18 10v4M15 13l3 3 3-3" stroke="#e8384f"/></svg>
         </div>
-        <h3>Storage Surprises</h3>
-        <p>Drives fill up mid-shoot with no warning. You discover it too late.</p>
+        <h3 data-i18n="prob.3.h">Storage Surprises</h3>
+        <p data-i18n="prob.3.p">Drives fill up mid-shoot with no warning. You discover it too late.</p>
       </div>
       <div class="problem-card animate">
         <div class="problem-icon" style="background:rgba(124,58,237,.1)">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12h6M9 16h4M4 4h16a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2z"/><path d="M8 4v4M16 4v4"/></svg>
         </div>
-        <h3>Scattered Logs</h3>
-        <p>Notes on phones, scraps of paper, voice memos. No single source of truth.</p>
+        <h3 data-i18n="prob.4.h">Scattered Logs</h3>
+        <p data-i18n="prob.4.p">Notes on phones, scraps of paper, voice memos. No single source of truth.</p>
       </div>
     </div>
   </div>
@@ -882,31 +900,31 @@ footer{
 <section class="solution-section" id="solution">
   <div class="container">
     <div class="animate">
-      <span class="section-tag">The Solution</span>
-      <h2 class="section-title">Full visibility and control over<br>your media workflow.</h2>
-      <p class="section-sub">MediaTrack puts every transfer, every crew member, and every gigabyte on one clean dashboard — in real time.</p>
+      <span class="section-tag" data-i18n="sol.tag">The Solution</span>
+      <h2 class="section-title" data-i18n="sol.title">Full visibility and control over<br>your media workflow.</h2>
+      <p class="section-sub" data-i18n="sol.sub">MediaTrack puts every transfer, every crew member, and every gigabyte on one clean dashboard — in real time.</p>
     </div>
     <div class="solution-grid">
       <div class="solution-card animate">
         <div class="sol-icon" style="background:rgba(0,180,216,.15)">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="17 8 21 12 17 16"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         </div>
-        <h3>Transfer Tracking</h3>
-        <p>Record every file transfer in real time — from which card, to which drive, by whom, and at exactly what time.</p>
+        <h3 data-i18n="sol.1.h">Transfer Tracking</h3>
+        <p data-i18n="sol.1.p">Record every file transfer in real time — from which card, to which drive, by whom, and at exactly what time.</p>
       </div>
       <div class="solution-card animate">
         <div class="sol-icon" style="background:rgba(126,239,192,.12)">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--mint)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
         </div>
-        <h3>Crew Coordination</h3>
-        <p>Assign crew roles, track activity per person, and keep everyone accountable with a clear audit trail.</p>
+        <h3 data-i18n="sol.2.h">Crew Coordination</h3>
+        <p data-i18n="sol.2.p">Assign crew roles, track activity per person, and keep everyone accountable with a clear audit trail.</p>
       </div>
       <div class="solution-card animate">
         <div class="sol-icon" style="background:rgba(255,255,255,.08)">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.8)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
         </div>
-        <h3>Storage Management</h3>
-        <p>Monitor capacity in real time. Get a clear view of used vs. available storage across all devices on set.</p>
+        <h3 data-i18n="sol.3.h">Storage Management</h3>
+        <p data-i18n="sol.3.p">Monitor capacity in real time. Get a clear view of used vs. available storage across all devices on set.</p>
       </div>
     </div>
   </div>
@@ -917,53 +935,53 @@ footer{
   <div class="container">
     <div class="features-header">
       <div class="animate">
-        <span class="section-tag tag-teal">Features</span>
-        <h2 class="section-title">Everything you need<br>on a smooth production.</h2>
+        <span class="section-tag tag-teal" data-i18n="feat.tag">Features</span>
+        <h2 class="section-title" data-i18n="feat.title">Everything you need<br>on a smooth production.</h2>
       </div>
-      <p class="section-sub animate" style="max-width:340px;font-size:14px">Designed for the real conditions of fast-paced shoots, live events, and multi-crew productions.</p>
+      <p class="section-sub animate" style="max-width:340px;font-size:14px" data-i18n="feat.sub">Designed for the real conditions of fast-paced shoots, live events, and multi-crew productions.</p>
     </div>
     <div class="features-grid">
       <div class="feature-card animate">
         <div class="feature-icon" style="background:rgba(0,180,216,.1)">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--teal2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         </div>
-        <h3>Real-time Transfer Logging</h3>
-        <p>Every file move is logged automatically with timestamp, crew name, scene, and camera ID.</p>
+        <h3 data-i18n="feat.1.h">Real-time Transfer Logging</h3>
+        <p data-i18n="feat.1.p">Every file move is logged automatically with timestamp, crew name, scene, and camera ID.</p>
       </div>
       <div class="feature-card animate">
         <div class="feature-icon" style="background:rgba(12,169,122,.12)">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0ca97a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
         </div>
-        <h3>Scene & Shot Tracking</h3>
-        <p>Organize every transfer by scene, shot, camera, and artist. Never lose context again.</p>
+        <h3 data-i18n="feat.2.h">Scene & Shot Tracking</h3>
+        <p data-i18n="feat.2.p">Organize every transfer by scene, shot, camera, and artist. Never lose context again.</p>
       </div>
       <div class="feature-card animate">
         <div class="feature-icon" style="background:rgba(124,58,237,.1)">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
         </div>
-        <h3>Crew Management</h3>
-        <p>Manage your crew, assign roles, and see exactly who did what across the entire event.</p>
+        <h3 data-i18n="feat.3.h">Crew Management</h3>
+        <p data-i18n="feat.3.p">Manage your crew, assign roles, and see exactly who did what across the entire event.</p>
       </div>
       <div class="feature-card animate">
         <div class="feature-icon" style="background:rgba(26,95,216,.1)">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1a5fd8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
         </div>
-        <h3>Storage Monitoring</h3>
-        <p>Track storage capacity and real-time usage across all devices. No surprises mid-shoot.</p>
+        <h3 data-i18n="feat.4.h">Storage Monitoring</h3>
+        <p data-i18n="feat.4.p">Track storage capacity and real-time usage across all devices. No surprises mid-shoot.</p>
       </div>
       <div class="feature-card animate">
         <div class="feature-icon" style="background:rgba(230,106,42,.1)">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c05c1a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         </div>
-        <h3>Export & Reports</h3>
-        <p>Download full transfer logs as CSV. Perfect for post-production handoffs and billing.</p>
+        <h3 data-i18n="feat.5.h">Export & Reports</h3>
+        <p data-i18n="feat.5.p">Download full transfer logs as CSV. Perfect for post-production handoffs and billing.</p>
       </div>
       <div class="feature-card animate">
         <div class="feature-icon" style="background:rgba(12,169,122,.12)">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0ca97a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         </div>
-        <h3>Secure & Reliable</h3>
-        <p>Powered by Supabase. Your data is encrypted, backed up, and always accessible from any browser.</p>
+        <h3 data-i18n="feat.6.h">Secure & Reliable</h3>
+        <p data-i18n="feat.6.p">Powered by Supabase. Your data is encrypted, backed up, and always accessible from any browser.</p>
       </div>
     </div>
   </div>
@@ -973,32 +991,32 @@ footer{
 <section class="how-section" id="how-it-works">
   <div class="container">
     <div class="animate" style="text-align:center;max-width:560px;margin:0 auto">
-      <span class="section-tag tag-blue">How It Works</span>
-      <h2 class="section-title">Simple steps.<br>Powerful control.</h2>
-      <p class="section-sub" style="max-width:100%;margin:0 auto">Up and running in minutes. No training required, no complicated setup.</p>
+      <span class="section-tag tag-blue" data-i18n="how.tag">How It Works</span>
+      <h2 class="section-title" data-i18n="how.title">Simple steps.<br>Powerful control.</h2>
+      <p class="section-sub" style="max-width:100%;margin:0 auto" data-i18n="how.sub">Up and running in minutes. No training required, no complicated setup.</p>
     </div>
     <div class="steps-container">
       <div class="steps-line"></div>
       <div class="steps-grid">
         <div class="step-card animate">
           <div class="step-num"><span>1</span></div>
-          <h3>Create Your Event</h3>
-          <p>Set up an event with your project details, crew list, and scene breakdown in minutes.</p>
+          <h3 data-i18n="how.1.h">Create Your Event</h3>
+          <p data-i18n="how.1.p">Set up an event with your project details, crew list, and scene breakdown in minutes.</p>
         </div>
         <div class="step-card animate">
           <div class="step-num"><span>2</span></div>
-          <h3>Assign Crew</h3>
-          <p>Add your team members and define each person's role: DIT, camera op, runner, or admin.</p>
+          <h3 data-i18n="how.2.h">Assign Crew</h3>
+          <p data-i18n="how.2.p">Add your team members and define each person's role: DIT, camera op, runner, or admin.</p>
         </div>
         <div class="step-card animate">
           <div class="step-num"><span>3</span></div>
-          <h3>Record Transfers</h3>
-          <p>Log every file batch as it moves from card to drive. Track size, scene, camera, and status.</p>
+          <h3 data-i18n="how.3.h">Record Transfers</h3>
+          <p data-i18n="how.3.p">Log every file batch as it moves from card to drive. Track size, scene, camera, and status.</p>
         </div>
         <div class="step-card animate">
           <div class="step-num"><span>4</span></div>
-          <h3>Monitor & Export</h3>
-          <p>Watch your dashboard update live. When it's a wrap, export the full log as a CSV report.</p>
+          <h3 data-i18n="how.4.h">Monitor & Export</h3>
+          <p data-i18n="how.4.p">Watch your dashboard update live. When it's a wrap, export the full log as a CSV report.</p>
         </div>
       </div>
     </div>
@@ -1009,8 +1027,8 @@ footer{
 <section class="usecases-section" id="use-cases">
   <div class="container">
     <div class="animate" style="margin-bottom:0">
-      <span class="section-tag tag-green">Built For</span>
-      <h2 class="section-title">Designed for every<br>production workflow.</h2>
+      <span class="section-tag tag-green" data-i18n="uc.tag">Built For</span>
+      <h2 class="section-title" data-i18n="uc.title">Designed for every<br>production workflow.</h2>
     </div>
     <div class="usecases-grid">
       <div class="usecase-card animate">
@@ -1018,8 +1036,8 @@ footer{
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
         </div>
         <div>
-          <h3>Music Events & Festivals</h3>
-          <p>Manage multi-camera transfers across multiple stages and artists in real time during live events.</p>
+          <h3 data-i18n="uc.1.h">Music Events & Festivals</h3>
+          <p data-i18n="uc.1.p">Manage multi-camera transfers across multiple stages and artists in real time during live events.</p>
         </div>
       </div>
       <div class="usecase-card animate">
@@ -1027,8 +1045,8 @@ footer{
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e8384f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
         </div>
         <div>
-          <h3>Wedding Production</h3>
-          <p>Capture every emotional moment on disk with full accountability, no card left untracked.</p>
+          <h3 data-i18n="uc.2.h">Wedding Production</h3>
+          <p data-i18n="uc.2.p">Capture every emotional moment on disk with full accountability, no card left untracked.</p>
         </div>
       </div>
       <div class="usecase-card animate">
@@ -1036,8 +1054,8 @@ footer{
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
         </div>
         <div>
-          <h3>Film Crew / DIT</h3>
-          <p>Streamline on-set data management with a proper digital log instead of paper call sheets.</p>
+          <h3 data-i18n="uc.3.h">Film Crew / DIT</h3>
+          <p data-i18n="uc.3.p">Streamline on-set data management with a proper digital log instead of paper call sheets.</p>
         </div>
       </div>
       <div class="usecase-card animate">
@@ -1045,8 +1063,8 @@ footer{
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0ca97a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
         </div>
         <div>
-          <h3>Content Creators</h3>
-          <p>Juggling multiple shoots and cards? Keep your media organized across every project and location.</p>
+          <h3 data-i18n="uc.4.h">Content Creators</h3>
+          <p data-i18n="uc.4.p">Juggling multiple shoots and cards? Keep your media organized across every project and location.</p>
         </div>
       </div>
     </div>
@@ -1139,17 +1157,17 @@ footer{
 <section class="cta-section" id="get-started">
   <div class="container">
     <div class="animate">
-      <span class="section-tag" style="color:var(--mint);background:rgba(126,239,192,.15);margin-bottom:20px">Free During Early Access</span>
-      <h2 class="section-title">Stop losing track<br>of your media files.</h2>
-      <p>Join to keep data safe, organized, and accountable at zero cost.</p>
+      <span class="section-tag" style="color:var(--mint);background:rgba(126,239,192,.15);margin-bottom:20px" data-i18n="cta.tag">Free During Early Access</span>
+      <h2 class="section-title" data-i18n="cta.title">Stop losing track<br>of your media files.</h2>
+      <p data-i18n="cta.sub">Join to keep data safe, organized, and accountable at zero cost.</p>
 
       <div class="cta-actions">
         <a href="https://mediatrack.pages.dev/app" class="btn-white">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
-          Open MediaTrack Free
+          <span data-i18n="cta.btn">Open MediaTrack Free</span>
         </a>
         <a href="mailto:yogasonry@gmail.com" class="btn-outline-white">
-          Request a Demo
+          <span data-i18n="cta.demo">Request a Demo</span>
         </a>
       </div>
     </div>
@@ -1163,23 +1181,23 @@ footer{
       <a href="#" class="footer-logo">
         <img src="https://raw.githubusercontent.com/yogasonry/MediaTrack/main/Logo%20MediaTrack%20white.png" alt="MediaTrack" style="height:44px;width:auto">
       </a>
-      <p>Media Transfer Tracking for Production Teams.</p>
+      <p data-i18n="footer.tagline">Media Transfer Tracking for Production Teams.</p>
     </div>
     <div class="footer-col footer-col-grid">
-      <h4>Product</h4>
+      <h4 data-i18n="footer.product">Product</h4>
       <div class="footer-links">
-        <a href="#features">Features</a>
-        <a href="#how-it-works">How It Works</a>
-        <a href="#use-cases">Use Cases</a>
-        <a href="https://mediatrack.pages.dev/app">Open App</a>
+        <a href="#features" data-i18n="footer.features">Features</a>
+        <a href="#how-it-works" data-i18n="footer.how">How It Works</a>
+        <a href="#use-cases" data-i18n="footer.cases">Use Cases</a>
+        <a href="https://mediatrack.pages.dev/app" data-i18n="footer.open">Open App</a>
       </div>
     </div>
   </div>
   <div class="footer-bottom">
-    <span class="footer-copy">© 2026 MediaTrack. All rights reserved.</span>
+    <span class="footer-copy" data-i18n="footer.copy">© 2026 MediaTrack. All rights reserved.</span>
     <span class="footer-free-badge">
       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      Free during early access
+      <span data-i18n="footer.free">Free during early access</span>
     </span>
   </div>
 </footer>
@@ -1200,6 +1218,233 @@ const observer = new IntersectionObserver((entries) => {
   });
 }, { threshold: 0.08 });
 document.querySelectorAll('.animate').forEach(el => observer.observe(el));
+</script>
+<script>
+// ── i18n DICTIONARY ──────────────────────────────────────────────
+const LANG = {
+  en: {
+    'nav.features': 'Features',
+    'nav.how': 'How It Works',
+    'nav.cases': 'Use Cases',
+    'nav.cta': 'Open App →',
+
+    'hero.badge': 'Built for Production Teams',
+    'hero.h1a': 'Track, Manage & Secure',
+    'hero.h1b': 'Every Media Transfer',
+    'hero.sub': 'Record, monitor, and verify every file transfer from camera to storage. Zero guesswork, zero data loss.',
+    'hero.cta': 'Start Free Today',
+    'hero.cta2': 'See How It Works',
+
+    'sp.label': 'Trusted at events across Indonesia',
+    'sp.music': 'Music Events',
+    'sp.music.sub': 'Festivals & Live Productions',
+    'sp.film': 'Film Production',
+    'sp.film.sub': 'Wedding & Commercial Shoots',
+    'sp.free': '100% Free',
+    'sp.free.sub': 'During early access',
+    'sp.works': 'Works Everywhere',
+    'sp.works.sub': 'Browser-based, no install needed',
+
+    'prob.tag': 'The Problem',
+    'prob.title': 'Managing media files on set can be chaotic.',
+    'prob.sub': 'Every shoot, the same headaches. Files go missing, no one knows who moved what, storage runs out without warning.',
+    'prob.1.h': 'Files Get Lost',
+    'prob.1.p': 'No confirmation, no audit trail. Files disappear and nobody knows where they went.',
+    'prob.2.h': 'No Accountability',
+    'prob.2.p': 'Who transferred what? When? From which card? Nobody can say for certain.',
+    'prob.3.h': 'Storage Surprises',
+    'prob.3.p': 'Drives fill up mid-shoot with no warning. You discover it too late.',
+    'prob.4.h': 'Scattered Logs',
+    'prob.4.p': 'Notes on phones, scraps of paper, voice memos. No single source of truth.',
+
+    'sol.tag': 'The Solution',
+    'sol.title': 'Full visibility and control over your media workflow.',
+    'sol.sub': 'MediaTrack puts every transfer, every crew member, and every gigabyte on one clean dashboard — in real time.',
+    'sol.1.h': 'Transfer Tracking',
+    'sol.1.p': 'Record every file transfer in real time — from which card, to which drive, by whom, and at exactly what time.',
+    'sol.2.h': 'Crew Coordination',
+    'sol.2.p': 'Assign crew roles, track activity per person, and keep everyone accountable with a clear audit trail.',
+    'sol.3.h': 'Storage Management',
+    'sol.3.p': 'Monitor capacity in real time. Get a clear view of used vs. available storage across all devices on set.',
+
+    'feat.tag': 'Features',
+    'feat.title': 'Everything you need on a smooth production.',
+    'feat.sub': 'Designed for the real conditions of fast-paced shoots, live events, and multi-crew productions.',
+    'feat.1.h': 'Real-time Transfer Logging',
+    'feat.1.p': 'Every file move is logged automatically with timestamp, crew name, scene, and camera ID.',
+    'feat.2.h': 'Scene & Shot Tracking',
+    'feat.2.p': 'Organize every transfer by scene, shot, camera, and artist. Never lose context again.',
+    'feat.3.h': 'Crew Management',
+    'feat.3.p': 'Manage your crew, assign roles, and see exactly who did what across the entire event.',
+    'feat.4.h': 'Storage Monitoring',
+    'feat.4.p': 'Track storage capacity and real-time usage across all devices. No surprises mid-shoot.',
+    'feat.5.h': 'Export & Reports',
+    'feat.5.p': 'Download full transfer logs as CSV. Perfect for post-production handoffs and billing.',
+    'feat.6.h': 'Secure & Reliable',
+    'feat.6.p': 'Powered by Supabase. Your data is encrypted, backed up, and always accessible from any browser.',
+
+    'how.tag': 'How It Works',
+    'how.title': 'Simple steps. Powerful control.',
+    'how.sub': 'Up and running in minutes. No training required, no complicated setup.',
+    'how.1.h': 'Create Your Event',
+    'how.1.p': 'Set up an event with your project details, crew list, and scene breakdown in minutes.',
+    'how.2.h': 'Assign Crew',
+    'how.2.p': 'Add your team members and define each person\'s role: DIT, camera op, runner, or admin.',
+    'how.3.h': 'Record Transfers',
+    'how.3.p': 'Log every file batch as it moves from card to drive. Track size, scene, camera, and status.',
+    'how.4.h': 'Monitor & Export',
+    'how.4.p': 'Watch your dashboard update live. When it\'s a wrap, export the full log as a CSV report.',
+
+    'uc.tag': 'Built For',
+    'uc.title': 'Designed for every production workflow.',
+    'uc.1.h': 'Music Events & Festivals',
+    'uc.1.p': 'Manage multi-camera transfers across multiple stages and artists in real time during live events.',
+    'uc.2.h': 'Wedding Production',
+    'uc.2.p': 'Capture every emotional moment on disk with full accountability, no card left untracked.',
+    'uc.3.h': 'Film Crew / DIT',
+    'uc.3.p': 'Streamline on-set data management with a proper digital log instead of paper call sheets.',
+    'uc.4.h': 'Content Creators',
+    'uc.4.p': 'Juggling multiple shoots and cards? Keep your media organized across every project and location.',
+
+    'cta.tag': 'Free During Early Access',
+    'cta.title': 'Stop losing track of your media files.',
+    'cta.sub': 'Join to keep data safe, organized, and accountable at zero cost.',
+    'cta.btn': 'Open MediaTrack Free',
+    'cta.demo': 'Request a Demo',
+
+    'footer.product': 'Product',
+    'footer.features': 'Features',
+    'footer.how': 'How It Works',
+    'footer.cases': 'Use Cases',
+    'footer.open': 'Open App',
+    'footer.tagline': 'Media Transfer Tracking for Production Teams.',
+    'footer.copy': '© 2026 MediaTrack. All rights reserved.',
+    'footer.free': 'Free during early access',
+  },
+  id: {
+    'nav.features': 'Fitur',
+    'nav.how': 'Cara Kerja',
+    'nav.cases': 'Penggunaan',
+    'nav.cta': 'Buka Aplikasi →',
+
+    'hero.badge': 'Dibuat untuk Tim Produksi',
+    'hero.h1a': 'Lacak, Kelola & Amankan',
+    'hero.h1b': 'Setiap Transfer Media',
+    'hero.sub': 'Catat, pantau, dan verifikasi setiap transfer file dari kamera ke storage. Tanpa tebak-tebakan, tanpa kehilangan data.',
+    'hero.cta': 'Mulai Gratis Sekarang',
+    'hero.cta2': 'Lihat Cara Kerjanya',
+
+    'sp.label': 'Dipercaya di berbagai event di Indonesia',
+    'sp.music': 'Event Musik',
+    'sp.music.sub': 'Festival & Produksi Live',
+    'sp.film': 'Produksi Film',
+    'sp.film.sub': 'Pernikahan & Iklan Komersial',
+    'sp.free': '100% Gratis',
+    'sp.free.sub': 'Selama early access',
+    'sp.works': 'Bisa Di Mana Saja',
+    'sp.works.sub': 'Berbasis browser, tanpa instalasi',
+
+    'prob.tag': 'Masalahnya',
+    'prob.title': 'Mengelola file media di set bisa sangat kacau.',
+    'prob.sub': 'Setiap syuting, masalah yang sama terus berulang. File hilang, tidak ada yang tahu siapa yang memindahkan apa, storage habis tanpa peringatan.',
+    'prob.1.h': 'File Hilang',
+    'prob.1.p': 'Tidak ada konfirmasi, tidak ada jejak. File menghilang dan tidak ada yang tahu ke mana perginya.',
+    'prob.2.h': 'Tidak Ada Akuntabilitas',
+    'prob.2.p': 'Siapa yang transfer apa? Kapan? Dari card mana? Tidak ada yang bisa memastikan.',
+    'prob.3.h': 'Storage Penuh Tiba-tiba',
+    'prob.3.p': 'Drive penuh di tengah syuting tanpa peringatan. Baru ketahuan ketika sudah terlambat.',
+    'prob.4.h': 'Log Tercecer',
+    'prob.4.p': 'Catatan di HP, kertas, voice memo. Tidak ada satu sumber data yang bisa diandalkan.',
+
+    'sol.tag': 'Solusinya',
+    'sol.title': 'Visibilitas dan kontrol penuh atas alur kerja media kamu.',
+    'sol.sub': 'MediaTrack menempatkan setiap transfer, setiap anggota kru, dan setiap gigabyte dalam satu dashboard yang bersih — secara real time.',
+    'sol.1.h': 'Pelacakan Transfer',
+    'sol.1.p': 'Catat setiap transfer file secara real time — dari card mana, ke drive mana, oleh siapa, dan tepat jam berapa.',
+    'sol.2.h': 'Koordinasi Kru',
+    'sol.2.p': 'Tetapkan peran kru, lacak aktivitas per orang, dan jaga akuntabilitas semua pihak dengan jejak audit yang jelas.',
+    'sol.3.h': 'Manajemen Storage',
+    'sol.3.p': 'Pantau kapasitas secara real time. Lihat dengan jelas storage yang terpakai vs tersisa di semua perangkat.',
+
+    'feat.tag': 'Fitur',
+    'feat.title': 'Semua yang kamu butuhkan untuk produksi yang lancar.',
+    'feat.sub': 'Dirancang untuk kondisi nyata syuting cepat, event live, dan produksi multi-kru.',
+    'feat.1.h': 'Log Transfer Real-time',
+    'feat.1.p': 'Setiap perpindahan file dicatat otomatis dengan timestamp, nama kru, scene, dan ID kamera.',
+    'feat.2.h': 'Pelacakan Scene & Shot',
+    'feat.2.p': 'Atur setiap transfer berdasarkan scene, shot, kamera, dan artist. Tidak ada konteks yang hilang.',
+    'feat.3.h': 'Manajemen Kru',
+    'feat.3.p': 'Kelola kru, tetapkan peran, dan lihat persis siapa yang melakukan apa di seluruh event.',
+    'feat.4.h': 'Pemantauan Storage',
+    'feat.4.p': 'Lacak kapasitas storage dan penggunaan real-time di semua perangkat. Tanpa kejutan di tengah syuting.',
+    'feat.5.h': 'Ekspor & Laporan',
+    'feat.5.p': 'Unduh log transfer lengkap dalam format CSV. Sempurna untuk handoff pasca produksi dan penagihan.',
+    'feat.6.h': 'Aman & Andal',
+    'feat.6.p': 'Didukung oleh Supabase. Data kamu terenkripsi, ter-backup, dan selalu bisa diakses dari browser manapun.',
+
+    'how.tag': 'Cara Kerja',
+    'how.title': 'Langkah sederhana. Kontrol yang powerful.',
+    'how.sub': 'Siap digunakan dalam hitungan menit. Tidak perlu pelatihan, tidak ada setup yang rumit.',
+    'how.1.h': 'Buat Event',
+    'how.1.p': 'Siapkan event dengan detail proyek, daftar kru, dan breakdown scene dalam hitungan menit.',
+    'how.2.h': 'Tetapkan Kru',
+    'how.2.p': 'Tambahkan anggota tim dan tentukan peran masing-masing: DIT, camera op, runner, atau admin.',
+    'how.3.h': 'Catat Transfer',
+    'how.3.p': 'Log setiap batch file saat berpindah dari card ke drive. Lacak ukuran, scene, kamera, dan status.',
+    'how.4.h': 'Pantau & Ekspor',
+    'how.4.p': 'Lihat dashboard update secara live. Saat syuting selesai, ekspor log lengkap sebagai laporan CSV.',
+
+    'uc.tag': 'Dibuat Untuk',
+    'uc.title': 'Dirancang untuk setiap alur kerja produksi.',
+    'uc.1.h': 'Event Musik & Festival',
+    'uc.1.p': 'Kelola transfer multi-kamera di berbagai stage dan artist secara real time selama event berlangsung.',
+    'uc.2.h': 'Produksi Pernikahan',
+    'uc.2.p': 'Abadikan setiap momen berharga ke disk dengan akuntabilitas penuh, tidak ada card yang terlewat.',
+    'uc.3.h': 'Film Crew / DIT',
+    'uc.3.p': 'Sederhanakan manajemen data di set dengan log digital yang proper, bukan kertas call sheet.',
+    'uc.4.h': 'Content Creator',
+    'uc.4.p': 'Mengelola banyak syuting dan card? Atur media kamu dengan rapi di setiap proyek dan lokasi.',
+
+    'cta.tag': 'Gratis Selama Early Access',
+    'cta.title': 'Berhenti kehilangan jejak file media kamu.',
+    'cta.sub': 'Bergabung untuk menjaga data tetap aman, terorganisir, dan akuntabel tanpa biaya.',
+    'cta.btn': 'Buka MediaTrack Gratis',
+    'cta.demo': 'Minta Demo',
+
+    'footer.product': 'Produk',
+    'footer.features': 'Fitur',
+    'footer.how': 'Cara Kerja',
+    'footer.cases': 'Penggunaan',
+    'footer.open': 'Buka Aplikasi',
+    'footer.tagline': 'Pelacakan Transfer Media untuk Tim Produksi.',
+    'footer.copy': '© 2026 MediaTrack. Semua hak dilindungi.',
+    'footer.free': 'Gratis selama early access',
+  }
+};
+
+let _currentLang = localStorage.getItem('mt_lang') || 'en';
+
+function setLang(lang){
+  _currentLang = lang;
+  localStorage.setItem('mt_lang', lang);
+  document.documentElement.lang = lang;
+  document.getElementById('btn-en').classList.toggle('active', lang==='en');
+  document.getElementById('btn-id').classList.toggle('active', lang==='id');
+  applyLang();
+}
+
+function applyLang(){
+  const d = LANG[_currentLang];
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key = el.getAttribute('data-i18n');
+    if(d[key] !== undefined) el.innerHTML = d[key];
+  });
+}
+
+// Apply on load
+document.addEventListener('DOMContentLoaded', ()=>{
+  setLang(_currentLang);
+});
 </script>
 </body>
 </html>
